@@ -335,13 +335,10 @@ const LARGE_READ_BYTES: usize = 1 << 20;
 /// just repeats the work since the last one.
 pub const CHECKPOINT_FLUSH_DELAY: Duration = Duration::from_secs(30);
 
-/// RAM a saved download keeps pieces in until they verify. It only fills as far
-/// as pieces are unfinished, since a verified piece leaves RAM once written.
-fn saved_download_cache_bytes(setting: i64, piece_length: i64) -> i64 {
-    setting
-        .max(256 << 20)
-        .max(piece_length.saturating_mul(8).min(512 << 20))
-}
+/// RAM a saved download keeps pieces in: none. Every block goes straight to
+/// its file, and the hash check reads the piece back from disk. Streaming has
+/// no file to fall back on and keeps its own cache.
+const SAVED_DOWNLOAD_CACHE_BYTES: i64 = 0;
 
 impl DocumentTorrentStorage {
     pub fn new<P: AsRef<Path>>(info: Option<Info>, info_hash: InfoHash, base_dir: P) -> Arc<Self> {
@@ -725,7 +722,7 @@ impl DocumentTorrentStorage {
                 inner.max_cache_bytes = inner.max_cache_bytes.max(min_req);
             }
             if !inner.closed && inner.attached && !inner.stream {
-                inner.max_cache_bytes = saved_download_cache_bytes(bytes, inner.chunk_length);
+                inner.max_cache_bytes = SAVED_DOWNLOAD_CACHE_BYTES;
             }
         }
     }

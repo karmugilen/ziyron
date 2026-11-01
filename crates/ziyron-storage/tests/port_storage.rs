@@ -6,7 +6,6 @@ use std::fs::OpenOptions;
 use std::io::{Read, Seek, SeekFrom, Write};
 use std::os::unix::fs::FileExt;
 use std::sync::Arc;
-use std::time::Duration;
 
 use ziyron_storage::{
     delete_engine_owned_storage, engine_owned_part_path, files_overlapping, DocumentStorageClient,
@@ -246,7 +245,7 @@ fn test_attach_writes_only_prepared_bytes() {
 }
 
 #[test]
-fn test_close_reports_failed_write_back() {
+fn test_saved_download_write_fails_at_once() {
     let dir = test_temp_dir("close_wb_fail");
     let info = single_file_info("one", 8, 8);
     let st = DocumentTorrentStorage::new(Some(info.clone()), info_hash_zero(), dir.path());
@@ -261,9 +260,9 @@ fn test_close_reports_failed_write_back() {
         .unwrap();
     st.replace_file_handle(0, read_only).unwrap();
 
-    st.piece_at(0).write_at(b"LOST", 0).unwrap();
-    let err = TorrentStorage::close(&*st);
-    assert!(err.is_err(), "Close hid a failed write-back");
+    assert!(st.piece_at(0).write_at(b"LOST", 0).is_err(), "failed write was accepted");
+    assert!(st.write_back_error().is_some(), "failed write not reported");
+    let _ = TorrentStorage::close(&*st);
 }
 
 #[test]
@@ -288,7 +287,7 @@ fn test_empty_prepared_write_keeps_existing_file() {
 }
 
 #[test]
-fn test_failed_write_back_is_reported_and_backs_off() {
+fn test_failed_write_is_reported_until_a_retry_succeeds() {
     let dir = test_temp_dir("wb_backoff");
     let info = single_file_info("one", 8, 8);
     let st = DocumentTorrentStorage::new(Some(info.clone()), info_hash_zero(), dir.path());
@@ -305,17 +304,11 @@ fn test_failed_write_back_is_reported_and_backs_off() {
     let writable = open_rw_no_trunc(&dir.path().join("dest"));
     st.replace_file_handle(0, read_only).unwrap();
 
-    st.piece_at(0).write_at(b"SAVE", 0).unwrap();
-    let _ = st.flush_all_dirty();
+    assert!(st.piece_at(0).write_at(b"SAVE", 0).is_err(), "failed write was accepted");
     assert!(st.write_back_error().is_some(), "failed save not reported");
-    assert!(
-        st.flush_retry() >= Duration::from_millis(100),
-        "retry after failure {:?}",
-        st.flush_retry()
-    );
 
     st.replace_file_handle(0, writable).unwrap();
-    st.flush_all_dirty().unwrap();
+    st.piece_at(0).write_at(b"SAVE", 0).unwrap();
     assert!(
         st.write_back_error().is_none(),
         "error not cleared after a successful save"

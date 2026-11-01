@@ -97,7 +97,7 @@ impl DocumentTorrentStorage {
         inner.files_gen += 1;
         inner.stream = false;
         inner.attached = true;
-        inner.max_cache_bytes = saved_download_cache_bytes(inner.download_max_bytes, inner.chunk_length);
+        inner.max_cache_bytes = SAVED_DOWNLOAD_CACHE_BYTES;
 
         // Flush prepared cache data to disk
         let prepared_spans = inner.dirty_spans.clone();

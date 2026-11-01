@@ -1,4 +1,6 @@
 //! Torrent engine coordinator, HTTP streaming server, and control API.
+// Only Android: elsewhere mimalloc held over twice the RAM of the system allocator.
+#[cfg(target_os = "android")]
 #[global_allocator]
 static ALLOCATOR: mimalloc::MiMalloc = mimalloc::MiMalloc;
 

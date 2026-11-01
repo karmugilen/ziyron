@@ -63,25 +63,39 @@ a URL can use it.
 ### Against other engines
 
 The Sintel torrent (129 MiB) was downloaded on one Linux machine with
-[tools/bench/compare.py](tools/bench/compare.py). This is **one round on a public
-swarm**, so the times are not a verdict.
+[tools/bench/compare.py](tools/bench/compare.py), writing to a RAM disk. Values are
+medians of the runs that finished, over **two rounds on a public swarm**, so the
+times are not a verdict.
 
-| Engine | Version | Time (s) | CPU time (s) | Peak RAM (MiB) |
-|---|---|---:|---:|---:|
-| **Ziyron** | 0.1.0 | **25.6** | 2.51 | 374 |
-| rqbit | 9.1.0 | 27.5 | 1.89 | 35 |
-| WebTorrent | 5.1.3 | 35.0 | 15.19 | 238 |
-| aria2 | 1.37.0 | 42.1 | **1.34** | **22** |
-| libtorrent | 2.1.1.0 | 63.3 | 1.87 | 47 |
+| Engine | Version | Finished | Time (s) | CPU time (s) | Peak RAM (MiB) |
+|---|---|---:|---:|---:|---:|
+| **Ziyron** | 0.1.0 | **1/2** | 24.1 | 2.01 | 46 |
+| rqbit | 9.1.0 | 2/2 | 27.9 | 1.71 | 36 |
+| WebTorrent | 5.1.3 | 2/2 | 36.5 | 14.13 | 241 |
+| libtorrent | 2.1.1.0 | 2/2 | 38.1 | 2.08 | 44 |
+| aria2 | 1.37.0 | 2/2 | 43.4 | **1.23** | **21** |
 
-Six more Ziyron runs took 23-50 s, used 2.35-2.99 s of CPU and peaked at
-301-388 MiB.
+> **Known issue:** one of the two Ziyron runs had not finished after 200 s, when
+> the benchmark stopped it. The cause is not known. This is the first benchmark of
+> the zero-RAM download path, so that change is a suspect, but it is not proven.
 
-**Ziyron's weak spot is memory.** It peaked at about ten times rqbit's RAM and
-used more CPU than every engine here except WebTorrent. The cause of the high
-RAM is not known yet. Lowering the saved-download cache minimum from 256 MiB to
-16 MiB made no clear difference, and a figure excluding cache has not been
-measured. Peak RAM here is the whole process.
+**Memory is much lower than before.** Saved downloads used to peak at 374 MiB, and
+now peak at 46 MiB. Two changes did this:
+
+- **No pieces in RAM:** saved downloads write each block straight to its file, and
+  the hash check reads it back from disk. Streaming keeps its RAM cache, because
+  cached seeks depend on it, so these numbers do not apply to streaming.
+- **Standard allocator on desktop:** in one direct comparison before the change
+  above, mimalloc peaked at 339 MiB and the standard allocator at 159 MiB. Android
+  still uses mimalloc.
+
+Limits of this test:
+
+- A RAM disk has no disk delay. Writing every block directly may be slower on a
+  real drive or a phone, and that has not been measured.
+- The earlier 374 MiB figure came from a run writing to disk.
+- Peak RAM is the whole process. aria2 still uses about half of Ziyron's RAM, and
+  rqbit and aria2 use less CPU.
 
 ### Seeking
 
@@ -203,7 +217,9 @@ the class `webtor.app.EngineHost`.
 
 ## Roadmap
 
-- Find and reduce the high peak RAM, then lower CPU use
+- Find out why one zero-RAM download did not finish
+- Measure saved downloads on real drives and phones
+- Lower CPU use
 - More benchmark rounds, including seek times against other engines
 - A simple typed Rust API
 - The full test suite in CI

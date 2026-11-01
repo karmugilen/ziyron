@@ -385,9 +385,14 @@ impl DocumentTorrentStorage {
             match written {
                 Ok(()) => {
                     self.mark_saved_partial_locked(&mut inner, index);
+                    inner.flush_err = None;
                     break Ok(data.len());
                 }
-                Err(e) => break Err(e),
+                Err(e) => {
+                    // A full disk must show as an error, not as a stalled download.
+                    inner.flush_err = Some(e.to_string());
+                    break Err(e);
+                }
             }
         };
         inner.flushing.remove(&index);
