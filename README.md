@@ -1,13 +1,14 @@
 # Ziyron
 
-**A torrent engine in Rust, built so that video seeks fast.**
+**A torrent engine in Rust, built for faster downloads and faster peer discovery.**
 
 The name is Z + iron, the metal that rusts. Say it "ZY-ron".
 
-Ziyron downloads and streams at the same time. Point any video player at its
-HTTP stream, jump anywhere in the file, and the engine moves its peers to that
-spot. It runs on Android today and was built to power torrent players,
-downloaders and streaming servers.
+Ziyron looks for peers everywhere at once: trackers, DHT, peer exchange, local
+discovery, web seeds and WebTorrent. It then puts its requests with the quickest
+peers it finds. It can also stream while it downloads, so you can point any video
+player at its HTTP stream and jump anywhere in the file. It runs on Android and
+Linux, and can power downloaders, torrent players and streaming servers.
 
 > **Status: early.** Extracted from the Torrent Player Android app. Expect the
 > API to change.
@@ -31,8 +32,14 @@ cargo build --release -p ziyron-cli
 
 ## Why Ziyron
 
-These are design choices. For measured results, including where Ziyron is
-behind, see [Measured results](#measured-results).
+These are design goals. Peer discovery speed has not been measured against other
+engines. For what has been measured, including where Ziyron is behind, see
+[Measured results](#measured-results).
+
+**Many peer sources at once.** Trackers (HTTP, UDP, WebSocket), DHT, peer
+exchange, local discovery, web seeds and WebRTC peers all feed the same peer list.
+Peers that answered before are retried first, and it learns which connection type
+to try first.
 
 **Seeking comes first.** Most of a seek's wait is peers holding blocks, so the
 scheduler is built around that wait:
@@ -220,7 +227,7 @@ the class `webtor.app.EngineHost`.
 - Find out why one zero-RAM download did not finish
 - Measure saved downloads on real drives and phones
 - Lower CPU use
-- More benchmark rounds, including seek times against other engines
+- More benchmark rounds, including peer discovery and seek times against other engines
 - A simple typed Rust API
 - The full test suite in CI
 - A stable public Rust API
