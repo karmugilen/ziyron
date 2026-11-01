@@ -1,11 +1,11 @@
 //! Integration tests ported from `engine-go/tracker_status_test.go`.
 //!
-//! Drive [`engine::EngineServer`] via `dispatch_control` (JNI control path)
-//! and [`engine::tracker_status`].
+//! Drive [`ziyron_engine::EngineServer`] via `dispatch_control` (JNI control path)
+//! and [`ziyron_engine::tracker_status`].
 
 mod support;
 use base64::Engine as _;
-use engine::tracker_status::{
+use ziyron_engine::tracker_status::{
     TRACKER_STATUS_ERROR, TRACKER_STATUS_WAITING, TRACKER_STATUS_WORKING, TrackerLiveStatus,
     TrackerStatusManager, build_tracker_views,
 };
@@ -13,7 +13,7 @@ use std::collections::HashMap;
 use support::TestEngine;
 use std::sync::{Arc, atomic::{AtomicUsize, Ordering}};
 use tracing_subscriber::prelude::*;
-use engine::tracker_status::TrackerStatusLayer;
+use ziyron_engine::tracker_status::TrackerStatusLayer;
 
 #[test]
 fn test_build_tracker_views_marks_original_and_status() {

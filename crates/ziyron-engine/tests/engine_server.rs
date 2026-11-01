@@ -1,6 +1,6 @@
 //! Integration tests ported from `engine-go/server_test.go`.
 //!
-//! Drive [`engine::EngineServer`] via `dispatch_control` (JNI control path).
+//! Drive [`ziyron_engine::EngineServer`] via `dispatch_control` (JNI control path).
 
 mod support;
 use base64::Engine as _;
@@ -345,7 +345,7 @@ fn test_piece_telemetry_inclusive_ranges_and_max_buckets() {
     record.write().selected = vec![0];
     let (code, pbody) = eng.dispatch("GET", &format!("/pieces/{id}?maxBuckets=4"), "");
     assert_eq!(code, 200, "{}", String::from_utf8_lossy(&pbody));
-    let telemetry: engine::types::PieceTelemetryResponse = serde_json::from_slice(&pbody).unwrap();
+    let telemetry: ziyron_engine::types::PieceTelemetryResponse = serde_json::from_slice(&pbody).unwrap();
     assert_eq!(telemetry.total_pieces, 10);
     assert_eq!(telemetry.max_buckets, 4);
     assert_eq!(telemetry.buckets.len(), 4);

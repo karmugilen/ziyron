@@ -1,6 +1,6 @@
 //! Integration tests ported from `engine-go/idle_buffer_test.go`.
 //!
-//! Drive [`engine::EngineServer`] via `dispatch_control` (JNI control path).
+//! Drive [`ziyron_engine::EngineServer`] via `dispatch_control` (JNI control path).
 
 mod support;
 

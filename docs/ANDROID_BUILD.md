@@ -9,13 +9,13 @@ produce that library. Select with a Gradle property.
 - JDK 17 or 21 (`JAVA_HOME=/usr/lib/jvm/java-21-openjdk` on this machine)
 - Android SDK + NDK **26.1.10909125** (`ANDROID_HOME`, `ANDROID_NDK_HOME`)
 - For Rust: Rust toolchain with `aarch64-linux-android` (and `x86_64-linux-android` for the emulator)
-- Disk: keep ≥25 GB free; Rust Android builds write under `/home/kar/.cache/wt-targets/android-<abi>` (never `/tmp`)
+- Disk: keep ≥25 GB free; Rust Android builds write under `~/.cache/wt-targets/android-<abi>` (never `/tmp`)
 
 ## Go engine (default)
 
 ```sh
 export JAVA_HOME=/usr/lib/jvm/java-21-openjdk
-export ANDROID_HOME=/home/kar/Android/Sdk
+export ANDROID_HOME=~/Android/Sdk
 export ANDROID_NDK_HOME="$ANDROID_HOME/ndk/26.1.10909125"
 
 ./android/gradlew -p android :app:assembleDebug --no-daemon \
@@ -35,7 +35,7 @@ This runs `engine-go/build.sh` and writes `android/app/src/main/jniLibs/arm64-v8
 
 ```sh
 export JAVA_HOME=/usr/lib/jvm/java-21-openjdk
-export ANDROID_HOME=/home/kar/Android/Sdk
+export ANDROID_HOME=~/Android/Sdk
 export ANDROID_NDK_HOME="$ANDROID_HOME/ndk/26.1.10909125"
 
 ./android/gradlew -p android :app:assembleDebug -Pwebtor.engine=rust --no-daemon \
@@ -44,7 +44,7 @@ export ANDROID_NDK_HOME="$ANDROID_HOME/ndk/26.1.10909125"
 
 This runs `engine-rs/build-android.sh` (NDK clang linker, 16 KiB page size, strip) into the
 same `jniLibs/arm64-v8a/libengine.so` path. Cargo uses
-`CARGO_TARGET_DIR=/home/kar/.cache/wt-targets/android-arm64-v8a` with `CARGO_BUILD_JOBS=3`
+`CARGO_TARGET_DIR=~/.cache/wt-targets/android-arm64-v8a` with `CARGO_BUILD_JOBS=3`
 and a flock so only one Android release cargo build runs at a time.
 
 Standalone (without Gradle):
@@ -88,11 +88,11 @@ Desktop control binary (port of `engine-go/main_host.go`):
 
 ```sh
 cd engine-rs
-CARGO_TARGET_DIR=/home/kar/.cache/wt-targets/ziyron-engine-jni CARGO_BUILD_JOBS=3 \
+CARGO_TARGET_DIR=~/.cache/wt-targets/ziyron-engine-jni CARGO_BUILD_JOBS=3 \
   cargo build -p ziyron-engine --bin engine-host
 
 # Run (control HTTP on 127.0.0.1:18080 by default)
-/home/kar/.cache/wt-targets/ziyron-engine-jni/debug/engine-host \
+~/.cache/wt-targets/ziyron-engine-jni/debug/engine-host \
   -port 18080 -path /tmp/webtorrent -max-peers 55
 
 curl -s http://127.0.0.1:18080/stats
@@ -108,4 +108,4 @@ and `ctl_http` on localhost; it exits on SIGINT/SIGTERM or `POST /shutdown`.
 - One Gradle build at a time; use `--no-daemon` and `-Xmx2g` (not higher).
 - If configuration-cache complains about Exec engine tasks, add `--no-configuration-cache`.
 - One heavy Rust Android release build at a time (`flock` in `build-android.sh`).
-- Keep each `/home/kar/.cache/wt-targets/android-*` tree under ~4 GB (`cargo clean` if needed).
+- Keep each `~/.cache/wt-targets/android-*` tree under ~4 GB (`cargo clean` if needed).

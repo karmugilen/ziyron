@@ -363,7 +363,7 @@ impl PeerTorrent for TorrentInner {
                 "kind={} useful={useful_bytes} out={}",
                 crate::stats::failure_kind(&reason), handle.is_outgoing()));
             #[cfg(not(target_os = "android"))]
-            eprintln!(
+            tracing::debug!(
                 "peer_closed addr={} out={} src={:?} reason={}",
                 addr,
                 handle.is_outgoing(),

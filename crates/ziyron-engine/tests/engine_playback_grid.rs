@@ -1,11 +1,11 @@
 //! Integration tests ported from `engine-go/playback_grid_test.go`.
 //!
-//! Drive [`engine::EngineServer`] via `dispatch_control` (JNI control path).
+//! Drive [`ziyron_engine::EngineServer`] via `dispatch_control` (JNI control path).
 
 mod support;
 use support::TestEngine;
 
-use engine::stream_http::range_start;
+use ziyron_engine::stream_http::range_start;
 
 #[test]
 fn test_range_start_parses_single_ranges() {

@@ -1,6 +1,6 @@
 //! Integration tests ported from `engine-go/preview_test.go`.
 //!
-//! Drive [`engine::EngineServer`] via `dispatch_control` (JNI control path)
+//! Drive [`ziyron_engine::EngineServer`] via `dispatch_control` (JNI control path)
 //! and `open_preview`.
 
 mod support;
@@ -18,7 +18,7 @@ fn test_open_preview_reads_verified_bytes_without_focus_change() {
     let id = add_recovery_torrent(&eng, &metadata);
 
     let tmp = tempfile::tempdir_in(
-        std::env::var("TMPDIR").unwrap_or_else(|_| "/home/kar/.cache/wt-tmp/agy-tests".into()),
+        std::env::var("TMPDIR").unwrap_or_else(|_| "/tmp/ziyron-tests/agy-tests".into()),
     )
     .expect("tempdir");
     let dest_path = tmp.path().join("partial.dat");
@@ -60,7 +60,7 @@ fn test_preview_rejects_second_concurrent_job() {
     let id = add_recovery_torrent(&eng, &metadata);
 
     let tmp = tempfile::tempdir_in(
-        std::env::var("TMPDIR").unwrap_or_else(|_| "/home/kar/.cache/wt-tmp/agy-tests".into()),
+        std::env::var("TMPDIR").unwrap_or_else(|_| "/tmp/ziyron-tests/agy-tests".into()),
     )
     .expect("tempdir");
     let dest_file = std::fs::File::create(tmp.path().join("f.dat")).expect("create");
@@ -118,7 +118,7 @@ fn test_preview_close_is_idempotent_and_cancels_read() {
     let id = add_recovery_torrent(&eng, &metadata);
 
     let tmp = tempfile::tempdir_in(
-        std::env::var("TMPDIR").unwrap_or_else(|_| "/home/kar/.cache/wt-tmp/agy-tests".into()),
+        std::env::var("TMPDIR").unwrap_or_else(|_| "/tmp/ziyron-tests/agy-tests".into()),
     )
     .expect("tempdir");
     let dest_file = std::fs::File::create(tmp.path().join("f.dat")).expect("create");
@@ -156,7 +156,7 @@ fn test_pause_releases_preview_demand() {
     let id = add_recovery_torrent(&eng, &metadata);
 
     let tmp = tempfile::tempdir_in(
-        std::env::var("TMPDIR").unwrap_or_else(|_| "/home/kar/.cache/wt-tmp/agy-tests".into()),
+        std::env::var("TMPDIR").unwrap_or_else(|_| "/tmp/ziyron-tests/agy-tests".into()),
     )
     .expect("tempdir");
     let dest_file = std::fs::File::create(tmp.path().join("f.dat")).expect("create");
@@ -194,7 +194,7 @@ fn test_preview_budget_enforced_across_seeks() {
     let id = add_recovery_torrent(&eng, &metadata);
 
     let tmp = tempfile::tempdir_in(
-        std::env::var("TMPDIR").unwrap_or_else(|_| "/home/kar/.cache/wt-tmp/agy-tests".into()),
+        std::env::var("TMPDIR").unwrap_or_else(|_| "/tmp/ziyron-tests/agy-tests".into()),
     )
     .expect("tempdir");
     let dest_file = std::fs::File::create(tmp.path().join("f.dat")).expect("create");
@@ -234,7 +234,7 @@ fn test_preview_session_deadline_blocks_unlimited_reads() {
     let id = add_recovery_torrent(&eng, &metadata);
 
     let tmp = tempfile::tempdir_in(
-        std::env::var("TMPDIR").unwrap_or_else(|_| "/home/kar/.cache/wt-tmp/agy-tests".into()),
+        std::env::var("TMPDIR").unwrap_or_else(|_| "/tmp/ziyron-tests/agy-tests".into()),
     )
     .expect("tempdir");
     let dest_file = std::fs::File::create(tmp.path().join("f.dat")).expect("create");
@@ -269,7 +269,7 @@ fn test_preview_close_joins_blocked_read() {
     let id = add_recovery_torrent(&eng, &metadata);
 
     let tmp = tempfile::tempdir_in(
-        std::env::var("TMPDIR").unwrap_or_else(|_| "/home/kar/.cache/wt-tmp/agy-tests".into()),
+        std::env::var("TMPDIR").unwrap_or_else(|_| "/tmp/ziyron-tests/agy-tests".into()),
     )
     .expect("tempdir");
     let dest_file = std::fs::File::create(tmp.path().join("f.dat")).expect("create");
@@ -308,7 +308,7 @@ fn test_preview_concurrent_open_atomic() {
     let id = add_recovery_torrent(&eng, &metadata);
 
     let tmp = tempfile::tempdir_in(
-        std::env::var("TMPDIR").unwrap_or_else(|_| "/home/kar/.cache/wt-tmp/agy-tests".into()),
+        std::env::var("TMPDIR").unwrap_or_else(|_| "/tmp/ziyron-tests/agy-tests".into()),
     )
     .expect("tempdir");
     let dest_file = std::fs::File::create(tmp.path().join("f.dat")).expect("create");
@@ -374,7 +374,7 @@ fn test_pause_other_torrent_leaves_preview() {
     assert_ne!(id, other_id);
 
     let tmp = tempfile::tempdir_in(
-        std::env::var("TMPDIR").unwrap_or_else(|_| "/home/kar/.cache/wt-tmp/agy-tests".into()),
+        std::env::var("TMPDIR").unwrap_or_else(|_| "/tmp/ziyron-tests/agy-tests".into()),
     )
     .expect("tempdir");
     let dest_file = std::fs::File::create(tmp.path().join("f.dat")).expect("create");

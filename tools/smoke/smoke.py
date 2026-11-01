@@ -23,7 +23,7 @@ import urllib.parse
 import urllib.request
 
 
-ROOT = Path('/home/kar/.cache/wt-tmp/codex-smoke')
+ROOT = Path('/tmp/ziyron-tests/smoke')
 MIB = 1024 * 1024
 PUBLIC = 'https://webtorrent.io/free-torrents'
 

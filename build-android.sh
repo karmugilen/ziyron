@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Build ziyron-engine as libengine.so for Android.
+# Build ziyron-android as libengine.so for Android.
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
@@ -36,7 +36,7 @@ AR="$TOOLCHAIN/bin/llvm-ar"
 STRIP_BIN="$TOOLCHAIN/bin/llvm-strip"
 OUT="$ROOT/android/app/src/main/jniLibs/$ABI"
 OUT_SO="$OUT/libengine.so"
-CACHE_ROOT="${WT_CARGO_CACHE_ROOT:-/home/kar/.cache/wt-targets}"
+CACHE_ROOT="${WT_CARGO_CACHE_ROOT:-$HOME/.cache/wt-targets}"
 # Never use /tmp (RAM-backed tmpfs); keep Android builds on disk.
 TARGET_DIR="${CARGO_TARGET_DIR:-$CACHE_ROOT/android-$ABI}"
 LOCK_FILE="$CACHE_ROOT/android-release.lock"
@@ -80,7 +80,7 @@ export CARGO_BUILD_JOBS="${CARGO_BUILD_JOBS:-3}"
 
 cd "$ENGINE_RS"
 # One Android release build at a time across ABIs/workers.
-flock "$LOCK_FILE" cargo build --release -p ziyron-engine --lib --target "$RUST_TARGET"
+flock "$LOCK_FILE" cargo build --release -p ziyron-android --lib --target "$RUST_TARGET"
 
 SRC_SO="$TARGET_DIR/$RUST_TARGET/release/libengine.so"
 if [ ! -f "$SRC_SO" ]; then

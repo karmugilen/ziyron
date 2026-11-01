@@ -2,7 +2,7 @@
 //!
 //! Marked `#[ignore]` by default (heavy: ~64 MiB RAM ×2 clients + transfer time).
 //! Run with:
-//!   CARGO_TARGET_DIR=/home/kar/.cache/wt-targets/ziyron-core-e2e CARGO_BUILD_JOBS=3 \
+//!   CARGO_TARGET_DIR=target/ziyron-core-e2e CARGO_BUILD_JOBS=3 \
 //!     cargo test -p ziyron-core --test e2e_throughput -- --ignored --nocapture
 //!
 //! Compare with Go: see E2E_TESTS.md § Throughput.

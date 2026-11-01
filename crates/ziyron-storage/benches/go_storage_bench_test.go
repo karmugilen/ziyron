@@ -353,7 +353,7 @@ func runGoPieceAggregation(iters int) (time.Duration, error) {
 }
 
 func TestRunBenchmarks(t *testing.T) {
-	baseDir := "/home/kar/.cache/wt-tmp/perf/storage-go"
+	baseDir := "/tmp/ziyron-tests/perf/storage-go"
 	_ = os.RemoveAll(baseDir)
 	_ = os.MkdirAll(baseDir, 0700)
 	defer os.RemoveAll(baseDir)

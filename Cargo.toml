@@ -9,15 +9,18 @@ members = [
     "crates/ziyron-storage",
     "crates/ziyron-policy",
     "crates/ziyron-engine",
+    "crates/ziyron-android",
+    "crates/ziyron-cli",
     "crates/ziyron-parity",
 ]
 
 [workspace.package]
 version = "0.1.0"
 edition = "2021"
-license = "MIT"
+license = "MPL-2.0"
 publish = false
 rust-version = "1.85"
+repository = "https://github.com/karmugilen/ziyron"
 
 [workspace.dependencies]
 ziyron-types = { path = "crates/ziyron-types" }
@@ -27,6 +30,7 @@ ziyron-discovery = { path = "crates/ziyron-discovery" }
 ziyron-core = { path = "crates/ziyron-core" }
 ziyron-storage = { path = "crates/ziyron-storage" }
 ziyron-policy = { path = "crates/ziyron-policy" }
+ziyron-engine = { path = "crates/ziyron-engine" }
 tokio = { version = "1", features = ["full"] }
 bytes = "1"
 thiserror = "2"

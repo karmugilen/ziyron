@@ -1,6 +1,6 @@
 //! Integration tests ported from `engine-go/next_preload_test.go`.
 //!
-//! Drive [`engine::EngineServer`] via `dispatch_control` (JNI control path).
+//! Drive [`ziyron_engine::EngineServer`] via `dispatch_control` (JNI control path).
 
 mod support;
 use base64::Engine as _;

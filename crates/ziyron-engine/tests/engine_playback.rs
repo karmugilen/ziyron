@@ -1,10 +1,10 @@
 //! Integration tests ported from `engine-go/playback_test.go`.
 //!
-//! Drive [`engine::EngineServer`] via `dispatch_control` (JNI control path)
-//! and [`engine::playback::PlaybackReader`].
+//! Drive [`ziyron_engine::EngineServer`] via `dispatch_control` (JNI control path)
+//! and [`ziyron_engine::playback::PlaybackReader`].
 
 mod support;
-use engine::types::PlayRequest;
+use ziyron_engine::types::PlayRequest;
 use support::playback::{large_playback_fixture_mode, playback_fixture_mode, write_verified_piece};
 use ziyron_policy::piece_span::{FileLayout, file_piece_range};
 

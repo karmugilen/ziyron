@@ -1,6 +1,6 @@
 //! Integration tests ported from `engine-go/playback_resume_test.go`.
 //!
-//! Drive [`engine::EngineServer`] via `dispatch_control` (JNI control path).
+//! Drive [`ziyron_engine::EngineServer`] via `dispatch_control` (JNI control path).
 
 mod support;
 use support::TestEngine;

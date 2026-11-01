@@ -4,7 +4,7 @@
 //! - Constructor: `EngineServer::new(ctl_port: u16, download_dir: impl AsRef<Path>, max_peers: usize) -> std::io::Result<Arc<EngineServer>>`
 //! - Request entry point: `EngineServer::request(&self, method: &str, path: &str, body: &str) -> (u16, Vec<u8>)`
 //!   dispatches any control API route and returns `(http_status_code, response_body_bytes)`.
-//! - JNI entry point: implements `crate::jni::host_api::EngineHostApi`.
+//! - The Android bridge lives in the `ziyron-android` crate.
 //!
 //! Port of `engine-go/server.go`.
 

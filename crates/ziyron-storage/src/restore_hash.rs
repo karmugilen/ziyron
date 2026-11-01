@@ -135,7 +135,7 @@ mod tests {
     static COUNTER: AtomicU64 = AtomicU64::new(0);
 
     fn fixture_dir(prefix: &str) -> PathBuf {
-        let root = PathBuf::from("/home/kar/.cache/wt-tmp/ziyron-storage-restore");
+        let root = PathBuf::from("/tmp/ziyron-tests/ziyron-storage-restore");
         let _ = fs::create_dir_all(&root);
         let id = COUNTER.fetch_add(1, Ordering::Relaxed);
         let dir = root.join(format!("{prefix}-{id}"));

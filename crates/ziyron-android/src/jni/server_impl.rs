@@ -1,4 +1,4 @@
-//! `EngineHostApi` backed by [`crate::server::EngineServer`].
+//! `EngineHostApi` backed by [`ziyron_engine::server::EngineServer`].
 //!
 //! Carries over the Android JNI behaviour previously sketched in
 //! `jni_export.rs`: tokio runtime for `start_streaming`, control framing,
@@ -11,9 +11,9 @@ use std::time::Duration;
 
 use parking_lot::Mutex;
 
-use crate::playback::PlaybackReader;
-use crate::preview::PreviewReader;
-use crate::server::EngineServer;
+use ziyron_engine::playback::PlaybackReader;
+use ziyron_engine::preview::PreviewReader;
+use ziyron_engine::server::EngineServer;
 
 use super::host_api::EngineHostApi;
 use super::{log_error, log_info};
@@ -271,7 +271,7 @@ mod startup_tests {
 
     #[test]
     fn android_start_engine_restores_contacts_without_a_caller_runtime() {
-        let root = "/home/kar/.cache/wt-tmp/codex-engine";
+        let root = "/tmp/ziyron-tests/codex-engine";
         std::fs::create_dir_all(root).unwrap();
         let dir = tempfile::tempdir_in(root).unwrap();
         // Exercise the warm-start path that previously spawned DHT work without

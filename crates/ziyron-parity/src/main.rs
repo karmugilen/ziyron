@@ -45,7 +45,7 @@ enum Cmd {
         #[arg(long)]
         out: PathBuf,
         /// Working directory for fixtures/swarm/leech dirs.
-        #[arg(long, default_value = "/home/kar/.cache/wt-tmp/ziyron-parity")]
+        #[arg(long, default_value = "/tmp/ziyron-tests/ziyron-parity")]
         work: PathBuf,
         /// Repeats per scenario (>= 3 recommended).
         #[arg(long, default_value_t = 3)]

@@ -937,7 +937,7 @@ impl TorrentInner {
                 .entry(crate::stats::failure_kind(reason).into())
                 .or_default() += 1;
             #[cfg(not(target_os = "android"))]
-            eprintln!(
+            tracing::debug!(
                 "peer_closed addr={} out={} src={:?} reason={}",
                 addr,
                 handle.is_outgoing(),

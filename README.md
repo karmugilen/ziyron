@@ -9,9 +9,25 @@ HTTP stream, jump anywhere in the file, and the engine moves its peers to that
 spot. It runs on Android today and was built to power torrent players,
 downloaders and streaming servers.
 
-> **Status: early and private.** Extracted from the Torrent Player Android app.
-> The licence must be settled before this repository goes public: see
-> [NOTICE.md](NOTICE.md).
+> **Status: early.** Extracted from the Torrent Player Android app. Expect the
+> API to change.
+
+## Quick start
+
+Needs Linux and Rust 1.85 or newer.
+
+```sh
+cargo build --release -p ziyron-cli
+
+# Download every file, or pick some with --file
+./target/release/ziyron download "magnet:?xt=urn:btih:..." -o ./downloads
+
+# Stream the largest file, then open the printed URL in a video player
+./target/release/ziyron stream movie.torrent
+
+# Look inside a .torrent file
+./target/release/ziyron info movie.torrent
+```
 
 ## Why Ziyron
 
@@ -46,6 +62,7 @@ a URL can use it.
 | Seek to data already cached, 2 MiB ready | 16-28 ms | One Android phone |
 | Seek over the network, 2 MiB ready | 1060 ms median in the best run; 1080-1467 ms in others | One Android phone, real swarm, not controlled |
 | Seek over the network, first bytes | 292 ms median in the best run | Same |
+| Whole Sintel torrent with `ziyron download`, 129 MiB video | Under 60 s, about 6 MiB/s near the end; all 987 pieces checked separately | One run on Linux, real swarm |
 | Local transfer speed | About 423 MiB/s, against 296 MiB/s for the Go engine at the time | `ziyron-parity` on one machine |
 
 Read these with care:
@@ -61,7 +78,7 @@ Read these with care:
 
 | Engine | Language | Licence | Choose it when |
 |---|---|---|---|
-| **Ziyron** | Rust | See [NOTICE.md](NOTICE.md) | You are building a player where seeking matters most |
+| **Ziyron** | Rust | MPL-2.0 | You are building a player where seeking matters most |
 | [libtorrent](https://github.com/arvidn/libtorrent) | C++ | BSD-3-Clause | You need a mature engine with a long track record |
 | [rqbit](https://github.com/ikatson/rqbit) | Rust | Apache-2.0 | You want an established Rust client and library today |
 | [anacrolix/torrent](https://github.com/anacrolix/torrent) | Go | MPL-2.0 | You are building in Go |
@@ -85,27 +102,27 @@ Read these with care:
 | `ziyron-core` | Client, peers and the block scheduler |
 | `ziyron-storage` | Disk storage, caches, piece verification |
 | `ziyron-policy` | Shared engine policies |
-| `ziyron-engine` | Engine server, HTTP streaming, Android bridge, `engine-host` |
+| `ziyron-engine` | Engine server, HTTP streaming, `engine-host` control server |
+| `ziyron-android` | Android JNI bridge, built as `libengine.so` |
+| `ziyron-cli` | The `ziyron` command-line tool |
 | `ziyron-parity` | Performance benchmark |
 
-## Build and run
+## Other builds
 
-Needs Rust 1.85 or newer.
+- **Control server:** `cargo build --release -p ziyron-engine --bin engine-host`
+  gives you a localhost HTTP API for building your own app.
+- **Android:** see [docs/ANDROID_BUILD.md](docs/ANDROID_BUILD.md).
 
-```sh
-cargo build --release -p ziyron-engine --bin engine-host
-./target/release/engine-host --port 18080 --path ./downloads
-```
+## Roadmap
 
-For Android, see [docs/ANDROID_BUILD.md](docs/ANDROID_BUILD.md).
+- A head-to-head benchmark against libtorrent, rqbit and WebTorrent
+- The full test suite in CI
+- A stable public Rust API
+- Windows support: the engine currently uses Unix file descriptors
 
-## Before this goes public
+## Licence
 
-- Settle the licence ([NOTICE.md](NOTICE.md)).
-- Move the Android bridge out of `ziyron-engine` into its own crate.
-- Add a simple command-line downloader. `engine-host` is only a control server.
-- Remove machine-specific paths from tests, tools and docs.
-- Run a head-to-head benchmark against other engines.
-- Test on Windows and macOS.
+[MPL-2.0](LICENSE), because Ziyron derives from anacrolix/torrent. See
+[NOTICE.md](NOTICE.md) and [CONTRIBUTING.md](CONTRIBUTING.md).
 
 Use Ziyron only with content you have the right to download and share.

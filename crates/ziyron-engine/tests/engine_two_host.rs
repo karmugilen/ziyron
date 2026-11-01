@@ -133,7 +133,7 @@ async fn test_two_engine_host_transfer() {
         .build()
         .unwrap();
 
-    let tmp_root = PathBuf::from("/home/kar/.cache/wt-tmp/agy-engine/two_host_test");
+    let tmp_root = PathBuf::from("/tmp/ziyron-tests/agy-engine/two_host_test");
     let _ = fs::remove_dir_all(&tmp_root);
     fs::create_dir_all(&tmp_root).unwrap();
 

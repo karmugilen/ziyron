@@ -1,6 +1,6 @@
 //! Integration tests ported from `engine-go/metadata_cache_test.go`.
 //!
-//! Drive [`engine::EngineServer`] via `dispatch_control` (JNI control path).
+//! Drive [`ziyron_engine::EngineServer`] via `dispatch_control` (JNI control path).
 
 mod support;
 
@@ -13,7 +13,7 @@ fn episode_metadata(k: usize) -> Vec<usize> {
 fn test_direct_play_saves_every_episodes_metadata_once() {
     // Port of Go `TestDirectPlaySavesEveryEpisodesMetadataOnce`.
     let tmp = tempfile::tempdir_in(
-        std::env::var("TMPDIR").unwrap_or_else(|_| "/home/kar/.cache/wt-tmp/agy-tests".into()),
+        std::env::var("TMPDIR").unwrap_or_else(|_| "/tmp/ziyron-tests/agy-tests".into()),
     )
     .expect("tempdir");
     let (st, _, payload) = support::metadata_episodes(tmp.path());
@@ -46,7 +46,7 @@ fn test_direct_play_fetches_every_episodes_metadata_in_background() {
 fn test_validated_saved_metadata_replaces_partial_ram_piece() {
     // Port of Go `TestValidatedSavedMetadataReplacesPartialRAMPiece`.
     let tmp = tempfile::tempdir_in(
-        std::env::var("TMPDIR").unwrap_or_else(|_| "/home/kar/.cache/wt-tmp/agy-tests".into()),
+        std::env::var("TMPDIR").unwrap_or_else(|_| "/tmp/ziyron-tests/agy-tests".into()),
     )
     .expect("tempdir");
     let (st, _, payload) = support::metadata_episodes(tmp.path());
@@ -70,7 +70,7 @@ fn test_validated_saved_metadata_replaces_partial_ram_piece() {
 fn test_saved_metadata_commit_drops_partial_ram() {
     // Port of Go `TestSavedMetadataCommitDropsPartialRAM`.
     let tmp = tempfile::tempdir_in(
-        std::env::var("TMPDIR").unwrap_or_else(|_| "/home/kar/.cache/wt-tmp/agy-tests".into()),
+        std::env::var("TMPDIR").unwrap_or_else(|_| "/tmp/ziyron-tests/agy-tests".into()),
     )
     .expect("tempdir");
     let (st, _, payload) = support::metadata_episodes(tmp.path());
@@ -89,7 +89,7 @@ fn test_saved_metadata_commit_drops_partial_ram() {
 fn test_saved_metadata_commit_clears_evicted_flag() {
     // Port of Go `TestSavedMetadataCommitClearsEvictedFlag`.
     let tmp = tempfile::tempdir_in(
-        std::env::var("TMPDIR").unwrap_or_else(|_| "/home/kar/.cache/wt-tmp/agy-tests".into()),
+        std::env::var("TMPDIR").unwrap_or_else(|_| "/tmp/ziyron-tests/agy-tests".into()),
     )
     .expect("tempdir");
     let (st, _, payload) = support::metadata_episodes(tmp.path());

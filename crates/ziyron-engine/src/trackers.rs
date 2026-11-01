@@ -745,7 +745,7 @@ mod tests {
 
     #[test]
     fn test_tracker_pool_snapshot() {
-        let pool = TrackerPool::new("/home/kar/.cache/wt-tmp/codex-server/offline-pool");
+        let pool = TrackerPool::new("/tmp/ziyron-tests/codex-server/offline-pool");
         let snapshot = pool.snapshot();
         assert!(!snapshot.is_empty());
         assert!(snapshot.contains(&"udp://tracker.opentrackr.org:1337/announce".to_string()));

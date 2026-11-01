@@ -12,8 +12,8 @@ Use an on-disk target dir (not `/tmp` tmpfs):
 
 ```bash
 cd engine-rs
-mkdir -p /home/kar/.cache/wt-targets/ziyron-parity /home/kar/.cache/wt-tmp/ziyron-parity
-CARGO_TARGET_DIR=/home/kar/.cache/wt-targets/ziyron-parity CARGO_BUILD_JOBS=3 \
+mkdir -p ~/.cache/wt-targets/ziyron-parity ~/.cache/wt-tmp/ziyron-parity
+CARGO_TARGET_DIR=~/.cache/wt-targets/ziyron-parity CARGO_BUILD_JOBS=3 \
   cargo build -p ziyron-parity --release
 ```
 
@@ -21,14 +21,14 @@ CARGO_TARGET_DIR=/home/kar/.cache/wt-targets/ziyron-parity CARGO_BUILD_JOBS=3 \
 
 ```bash
 cd engine-go
-go build -tags=nosqlite,noboltdb -o /home/kar/.cache/wt-tmp/engine-go-host .
+go build -tags=nosqlite,noboltdb -o ~/.cache/wt-tmp/engine-go-host .
 
 cd ../engine-rs
-WT_PARITY_SCALE=bounded CARGO_TARGET_DIR=/home/kar/.cache/wt-targets/ziyron-parity CARGO_BUILD_JOBS=3 \
+WT_PARITY_SCALE=bounded CARGO_TARGET_DIR=~/.cache/wt-targets/ziyron-parity CARGO_BUILD_JOBS=3 \
   cargo run -p ziyron-parity --release -- \
-  run --engine /home/kar/.cache/wt-tmp/engine-go-host --label go --scenario all \
+  run --engine ~/.cache/wt-tmp/engine-go-host --label go --scenario all \
   --repeats 5 --seeders 4 \
-  --work /home/kar/.cache/wt-tmp/ziyron-parity \
+  --work ~/.cache/wt-tmp/ziyron-parity \
   --out crates/ziyron-parity/results/go-all-new.json
 ```
 
@@ -41,17 +41,17 @@ scenarios have five samples. Numbers are summarized in [`BASELINE.md`](BASELINE.
 Use the same scale, repeats and seeder count for both engines:
 
 ```bash
-CARGO_TARGET_DIR=/home/kar/.cache/wt-targets/ziyron-engine CARGO_BUILD_JOBS=3 \
+CARGO_TARGET_DIR=~/.cache/wt-targets/ziyron-engine CARGO_BUILD_JOBS=3 \
   cargo build -p ziyron-engine --release --bin engine-host
 
-WT_PARITY_SCALE=bounded CARGO_TARGET_DIR=/home/kar/.cache/wt-targets/ziyron-parity CARGO_BUILD_JOBS=3 \
+WT_PARITY_SCALE=bounded CARGO_TARGET_DIR=~/.cache/wt-targets/ziyron-parity CARGO_BUILD_JOBS=3 \
   cargo run -p ziyron-parity --release -- \
-  run --engine /home/kar/.cache/wt-targets/ziyron-engine/release/engine-host \
+  run --engine ~/.cache/wt-targets/ziyron-engine/release/engine-host \
   --label rust --scenario all --repeats 5 --seeders 4 \
-  --work /home/kar/.cache/wt-tmp/ziyron-parity \
+  --work ~/.cache/wt-tmp/ziyron-parity \
   --out crates/ziyron-parity/results/rust-all.json
 
-CARGO_TARGET_DIR=/home/kar/.cache/wt-targets/ziyron-parity CARGO_BUILD_JOBS=3 \
+CARGO_TARGET_DIR=~/.cache/wt-targets/ziyron-parity CARGO_BUILD_JOBS=3 \
   cargo run -p ziyron-parity --release -- \
   compare crates/ziyron-parity/results/go-all.json crates/ziyron-parity/results/rust-all.json
 ```
@@ -67,16 +67,16 @@ CRITICAL when they differ.
 
 ```bash
 # Build hosts (one at a time)
-cd engine-go && go build -tags=nosqlite,noboltdb -o /home/kar/.cache/wt-tmp/engine-go-host .
+cd engine-go && go build -tags=nosqlite,noboltdb -o ~/.cache/wt-tmp/engine-go-host .
 cd ../engine-rs
-CARGO_TARGET_DIR=/home/kar/.cache/wt-targets/ziyron-parity CARGO_BUILD_JOBS=3 \
+CARGO_TARGET_DIR=~/.cache/wt-targets/ziyron-parity CARGO_BUILD_JOBS=3 \
   cargo build -p ziyron-engine --bin engine-host
 
-CARGO_TARGET_DIR=/home/kar/.cache/wt-targets/ziyron-parity CARGO_BUILD_JOBS=3 \
+CARGO_TARGET_DIR=~/.cache/wt-targets/ziyron-parity CARGO_BUILD_JOBS=3 \
   cargo run -p ziyron-parity -- api-diff \
-  --go /home/kar/.cache/wt-tmp/engine-go-host \
-  --rust /home/kar/.cache/wt-targets/ziyron-parity/debug/engine-host \
-  --work /home/kar/.cache/wt-tmp/api-diff \
+  --go ~/.cache/wt-tmp/engine-go-host \
+  --rust ~/.cache/wt-targets/ziyron-parity/debug/engine-host \
+  --work ~/.cache/wt-tmp/api-diff \
   --report crates/ziyron-parity/API_DIFF.md \
   --repo ..
 ```
@@ -119,7 +119,7 @@ shared; repeat 0 does not imply a dropped OS page cache.
 
 ```bash
 cp crates/ziyron-parity/results/go-all.json crates/ziyron-parity/results/go-all-copy.json
-CARGO_TARGET_DIR=/home/kar/.cache/wt-targets/ziyron-parity CARGO_BUILD_JOBS=3 \
+CARGO_TARGET_DIR=~/.cache/wt-targets/ziyron-parity CARGO_BUILD_JOBS=3 \
   cargo run -p ziyron-parity --release -- \
   compare crates/ziyron-parity/results/go-all.json crates/ziyron-parity/results/go-all-copy.json
 ```

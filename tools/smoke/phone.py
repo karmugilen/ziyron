@@ -23,7 +23,7 @@ def adb(*args):
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument('--artifacts', type=Path, default=Path('/home/kar/funProjects/torrent-player/artifacts'))
+    parser.add_argument('--artifacts', type=Path, default=Path('artifacts'))
     parser.add_argument('--out', type=Path, required=True)
     parser.add_argument('--seconds', type=int, default=45)
     args = parser.parse_args()

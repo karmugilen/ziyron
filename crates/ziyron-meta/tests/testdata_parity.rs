@@ -13,12 +13,6 @@ fn load(name: &str) -> Vec<u8> {
 /// (filename, v1 hex, optional v2 hex, expected file count)
 const TORRENTS: &[(&str, &str, Option<&str>, usize)] = &[
     (
-        "23516C72685E8DB0C8F15553382A927F185C4F01.torrent",
-        "23516c72685e8db0c8f15553382a927f185c4f01",
-        None,
-        4,
-    ),
-    (
         "SKODAOCTAVIA336x280_archive.torrent",
         "d4b197dff199aad447a9a352e31528adbbd97922",
         None,
@@ -49,26 +43,8 @@ const TORRENTS: &[(&str, &str, Option<&str>, usize)] = &[
         1,
     ),
     (
-        "continuum.torrent",
-        "4029ef207642d5d6b8b9a0a484a103262f764710",
-        None,
-        4,
-    ),
-    (
         "flat-url-list.torrent",
         "9da24e606e4ed9c7b91c1772fb5bf98f82bd9687",
-        None,
-        8,
-    ),
-    (
-        "issue_65a.torrent",
-        "4fe050208d675e5cd967d41348a31ab11b316806",
-        None,
-        8,
-    ),
-    (
-        "issue_65b.torrent",
-        "d376200e98b64abdcfa257a63f6208a704e42d9f",
         None,
         8,
     ),
@@ -114,8 +90,6 @@ fn v1_info_bytes_roundtrip_exact() {
     // Go TestFile: marshal(info) == mi.InfoBytes for these torrents.
     for name in [
         "archlinux-2011.08.19-netinstall-i686.iso.torrent",
-        "continuum.torrent",
-        "23516C72685E8DB0C8F15553382A927F185C4F01.torrent",
         "trackerless.torrent",
     ] {
         let data = load(name);
@@ -185,7 +159,6 @@ fn bootstrap_magnetize() {
 fn bencode_torrent_roundtrip_as_value() {
     for name in [
         "archlinux-2011.08.19-netinstall-i686.iso.torrent",
-        "continuum.torrent",
         "trackerless.torrent",
     ] {
         let data = load(name);

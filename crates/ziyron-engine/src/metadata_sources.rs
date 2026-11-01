@@ -180,7 +180,7 @@ mod tests {
     }
 
     fn engine() -> (tempfile::TempDir, Arc<EngineServer>) {
-        let root = "/home/kar/.cache/wt-tmp/codex-engine";
+        let root = "/tmp/ziyron-tests/codex-engine";
         std::fs::create_dir_all(root).unwrap();
         let dir = tempfile::tempdir_in(root).unwrap();
         let server = EngineServer::new_with_config(0, dir.path(), 10, |config| {

@@ -25,7 +25,6 @@ futures.workspace = true
 rand.workspace = true
 libc.workspace = true
 sha2.workspace = true
-jni = { version = "0.21", features = ["invocation"] }
 maxminddb = "0.24"
 base64 = "0.22"
 url = "2"
@@ -36,12 +35,10 @@ log = "0.4"
 tracing-subscriber = { version = "0.3", default-features = false, features = ["registry", "std"] }
 reqwest = { version = "0.12", default-features = false, features = ["rustls-tls"] }
 
-[target.'cfg(target_os = "android")'.dependencies]
-android_logger = "0.14"
 
 [lib]
-name = "engine"
-crate-type = ["cdylib", "rlib"]
+name = "ziyron_engine"
+crate-type = ["rlib"]
 
 [[bin]]
 name = "engine-host"

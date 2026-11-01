@@ -1134,7 +1134,7 @@ mod startup_save_tests {
 
     #[test]
     fn slow_startup_save_does_not_block_piece_traffic() {
-        let base = PathBuf::from("/home/kar/.cache/wt-tmp/perf");
+        let base = PathBuf::from("/tmp/ziyron-tests/perf");
         fs::create_dir_all(&base).unwrap();
         let dir = tempfile::Builder::new()
             .prefix("startup-save-")
@@ -1188,7 +1188,7 @@ mod startup_save_tests {
 
     #[test]
     fn slow_startup_save_does_not_block_readers() {
-        let base = PathBuf::from("/home/kar/.cache/wt-tmp/perf");
+        let base = PathBuf::from("/tmp/ziyron-tests/perf");
         fs::create_dir_all(&base).unwrap();
         let dir = tempfile::Builder::new()
             .prefix("startup-save-readers-")

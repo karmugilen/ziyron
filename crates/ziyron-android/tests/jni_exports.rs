@@ -1,4 +1,4 @@
-//! JNI export smoke tests for ziyron-engine.
+//! JNI export smoke tests for ziyron-android.
 //!
 //! 1. Symbol check: the built cdylib must export exactly the nine
 //!    `Java_webtor_app_EngineHost_*` names (via `nm -D` / `llvm-nm -D`).

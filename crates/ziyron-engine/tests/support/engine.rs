@@ -1,11 +1,11 @@
-//! Test harness around [`engine::EngineServer`].
+//! Test harness around [`ziyron_engine::EngineServer`].
 
 use std::path::PathBuf;
 use std::sync::Arc;
 use std::time::Duration;
 
-use engine::types::{SettingsResponse, StatsResponse};
-use engine::EngineServer;
+use ziyron_engine::types::{SettingsResponse, StatsResponse};
+use ziyron_engine::EngineServer;
 use serde::de::DeserializeOwned;
 use tempfile::TempDir;
 
@@ -85,7 +85,7 @@ impl TestEngine {
         &self,
         id: &str,
         file_index: usize,
-    ) -> std::io::Result<Arc<engine::playback::PlaybackReader>> {
+    ) -> std::io::Result<Arc<ziyron_engine::playback::PlaybackReader>> {
         self.server.open_playback(id, file_index)
     }
 
@@ -93,7 +93,7 @@ impl TestEngine {
         &self,
         id: &str,
         file_index: usize,
-    ) -> std::io::Result<Arc<engine::preview::PreviewReader>> {
+    ) -> std::io::Result<Arc<ziyron_engine::preview::PreviewReader>> {
         self.server.open_preview(id, file_index)
     }
 
@@ -132,7 +132,7 @@ pub fn json_post<T: DeserializeOwned>(eng: &TestEngine, path: &str, body: &str) 
 
 /// All engine fixtures live on disk rather than the RAM-backed system tempdir.
 pub fn temp_dir() -> TempDir {
-    let root = "/home/kar/.cache/wt-tmp/codex-tests2";
+    let root = "/tmp/ziyron-tests/codex-tests2";
     std::fs::create_dir_all(root).expect("fixture root");
     tempfile::tempdir_in(root).expect("tempdir")
 }

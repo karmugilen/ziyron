@@ -1,5 +1,5 @@
 //! Shared helpers for ziyron-storage Go→Rust port integration tests.
-//! Fixtures live under `/home/kar/.cache/wt-tmp/ziyron-storage-tests` (≤256 MiB total)
+//! Fixtures live under `/tmp/ziyron-tests/ziyron-storage-tests` (≤256 MiB total)
 //! and are deleted when the TempDir drops.
 
 #![allow(dead_code)]
@@ -13,7 +13,7 @@ use std::sync::atomic::{AtomicU64, Ordering};
 use tempfile::TempDir;
 use ziyron_types::{FileInfo, Info, InfoHash, PeerInfo, PeerSource, PexFlags, Piece};
 
-pub const FIXTURE_ROOT: &str = "/home/kar/.cache/wt-tmp/ziyron-storage-tests";
+pub const FIXTURE_ROOT: &str = "/tmp/ziyron-tests/ziyron-storage-tests";
 
 static COUNTER: AtomicU64 = AtomicU64::new(0);
 

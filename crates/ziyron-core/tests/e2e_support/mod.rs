@@ -1,6 +1,6 @@
 //! Shared helpers for ziyron-core end-to-end transfer tests.
 //!
-//! Fixtures live under `/home/kar/.cache/wt-tmp/ziyron-core-e2e` (≤256 MiB) or in RAM.
+//! Fixtures live under `/tmp/ziyron-tests/ziyron-core-e2e` (≤256 MiB) or in RAM.
 //! Re-exports / wraps `ziyron_core::MemoryClientStorage` as the in-memory ClientStorage
 //! double used by every e2e case.
 
@@ -20,7 +20,7 @@ use ziyron_core::{
 };
 use ziyron_meta::{encode_info, info_hash_v1};
 
-pub const FIXTURE_ROOT: &str = "/home/kar/.cache/wt-tmp/ziyron-core-e2e";
+pub const FIXTURE_ROOT: &str = "/tmp/ziyron-tests/ziyron-core-e2e";
 
 /// Go `testutil.GreetingFileContents` — includes a NUL so blob/text confusion fails loudly.
 pub const GREETING_CONTENTS: &[u8] = b"hello,\x00world\n";

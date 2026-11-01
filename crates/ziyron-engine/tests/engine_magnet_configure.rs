@@ -4,11 +4,11 @@ mod support;
 use std::sync::{mpsc, Arc};
 use std::time::Duration;
 
-use engine::EngineServer;
+use ziyron_engine::EngineServer;
 use serde_json::json;
 
 fn pending_magnet() -> (tempfile::TempDir, Arc<EngineServer>, String, String, Vec<u8>) {
-    let root = "/home/kar/.cache/wt-tmp/codex-engine";
+    let root = "/tmp/ziyron-tests/codex-engine";
     std::fs::create_dir_all(root).unwrap();
     let dir = tempfile::tempdir_in(root).unwrap();
     let server = EngineServer::new(0, dir.path(), 10).unwrap();

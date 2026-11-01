@@ -3,14 +3,14 @@
 //! Flags match Go (`-port`, `-path`, `-max-peers`) and also accept the GNU
 //! long form (`--port`, `--path`, `--max-peers`). Starts `EngineServer`, the
 //! media stream listener, and a localhost control HTTP server
-//! ([`engine::ctl_http`]), then waits for SIGINT/SIGTERM or `POST /shutdown`.
+//! ([`ziyron_engine::ctl_http`]), then waits for SIGINT/SIGTERM or `POST /shutdown`.
 
 use std::process::ExitCode;
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::Arc;
 
-use engine::ctl_http;
-use engine::server::EngineServer;
+use ziyron_engine::ctl_http;
+use ziyron_engine::server::EngineServer;
 
 const DEFAULT_PORT: u16 = 18080;
 const DEFAULT_PATH: &str = "/tmp/webtorrent";

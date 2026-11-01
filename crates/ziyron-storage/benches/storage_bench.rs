@@ -405,7 +405,7 @@ fn run_rust_piece_aggregation(iters: usize) -> Duration {
 }
 
 fn main() {
-    let fixture_dir = PathBuf::from("/home/kar/.cache/wt-tmp/perf/storage-rust");
+    let fixture_dir = PathBuf::from("/tmp/ziyron-tests/perf/storage-rust");
     let _ = fs::remove_dir_all(&fixture_dir);
     fs::create_dir_all(&fixture_dir).expect("create fixture dir");
 

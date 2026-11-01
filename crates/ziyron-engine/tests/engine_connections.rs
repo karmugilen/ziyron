@@ -1,6 +1,6 @@
 //! Integration tests ported from `engine-go/connections_test.go`.
 //!
-//! Drive [`engine::EngineServer`] via `dispatch_control` (JNI control path).
+//! Drive [`ziyron_engine::EngineServer`] via `dispatch_control` (JNI control path).
 
 mod support;
 use support::TestEngine;
@@ -16,7 +16,7 @@ fn test_offline_peer_countries() {
     std::os::unix::fs::symlink(&mmdb_src, download_dir.join("geoip-country-2026-10.mmdb"))
         .expect("symlink geoip");
 
-    let server = engine::EngineServer::new(0, &download_dir, 55).expect("EngineServer::new");
+    let server = ziyron_engine::EngineServer::new(0, &download_dir, 55).expect("EngineServer::new");
     for (address, expected) in [
         ("8.8.8.8:6881", "US"),
         ("[2001:4860:4860::8888]:6881", "CA"),
@@ -39,7 +39,7 @@ fn test_offline_peer_countries() {
 }
 
 use base64::Engine as _;
-use engine::types::ConnectionsResponse;
+use ziyron_engine::types::ConnectionsResponse;
 
 fn connection_snapshot(eng: &TestEngine, id: &str) -> ConnectionsResponse {
     let (code, raw) = eng.dispatch("GET", &format!("/connections/{id}"), "");

@@ -1,6 +1,6 @@
 //! Integration tests ported from `engine-go/instant_seek_test.go`.
 //!
-//! Drive [`engine::EngineServer`] via `dispatch_control` (JNI control path).
+//! Drive [`ziyron_engine::EngineServer`] via `dispatch_control` (JNI control path).
 
 mod support;
 
@@ -8,7 +8,7 @@ mod support;
 fn test_seek_serves_delivered_blocks_before_the_piece_is_verified() {
     // Port of Go `TestSeekServesDeliveredBlocksBeforeThePieceIsVerified`.
     let tmp = tempfile::tempdir_in(
-        std::env::var("TMPDIR").unwrap_or_else(|_| "/home/kar/.cache/wt-tmp/agy-tests".into()),
+        std::env::var("TMPDIR").unwrap_or_else(|_| "/tmp/ziyron-tests/agy-tests".into()),
     )
     .expect("tempdir");
     let (st, _info, payload) = support::metadata_episodes(tmp.path());
@@ -46,7 +46,7 @@ fn test_seek_serves_delivered_blocks_before_the_piece_is_verified() {
 fn test_reopening_the_same_file_does_not_replan_metadata() {
     // Port of Go `TestReopeningTheSameFileDoesNotReplanMetadata`.
     let tmp = tempfile::tempdir_in(
-        std::env::var("TMPDIR").unwrap_or_else(|_| "/home/kar/.cache/wt-tmp/agy-tests".into()),
+        std::env::var("TMPDIR").unwrap_or_else(|_| "/tmp/ziyron-tests/agy-tests".into()),
     )
     .expect("tempdir");
     let (st, _, _) = support::metadata_episodes(tmp.path());
@@ -59,7 +59,7 @@ fn test_reopening_the_same_file_does_not_replan_metadata() {
 fn test_reinjecting_resume_bytes_does_not_leak_cache_accounting() {
     // Port of Go `TestReinjectingResumeBytesDoesNotLeakCacheAccounting`.
     let tmp = tempfile::tempdir_in(
-        std::env::var("TMPDIR").unwrap_or_else(|_| "/home/kar/.cache/wt-tmp/agy-tests".into()),
+        std::env::var("TMPDIR").unwrap_or_else(|_| "/tmp/ziyron-tests/agy-tests".into()),
     )
     .expect("tempdir");
     let (st, _, payload) = support::metadata_episodes(tmp.path());

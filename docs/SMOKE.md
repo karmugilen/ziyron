@@ -13,17 +13,17 @@ deletes its payload directory even on failure. No synthetic seeder is involved.
 
 ```sh
 cd engine-rs
-CARGO_TARGET_DIR=/home/kar/.cache/wt-targets/codex-smoke CARGO_BUILD_JOBS=3 \
+CARGO_TARGET_DIR=~/.cache/wt-targets/codex-smoke CARGO_BUILD_JOBS=3 \
   CARGO_INCREMENTAL=0 CARGO_PROFILE_DEV_DEBUG=0 CARGO_PROFILE_TEST_DEBUG=0 \
   cargo build --release -p ziyron-engine --bin engine-host
 cd ../engine-go
-go build -tags=nosqlite,noboltdb -o /home/kar/.cache/wt-tmp/engine-go-host .
+go build -tags=nosqlite,noboltdb -o ~/.cache/wt-tmp/engine-go-host .
 cd ..
 python3 engine-rs/tools/smoke/smoke.py \
-  --engine /home/kar/.cache/wt-tmp/engine-go-host --label go \
+  --engine ~/.cache/wt-tmp/engine-go-host --label go \
   --out engine-rs/tools/smoke/results/go.json
 python3 engine-rs/tools/smoke/smoke.py \
-  --engine /home/kar/.cache/wt-targets/codex-smoke/release/engine-host --label rust \
+  --engine ~/.cache/wt-targets/codex-smoke/release/engine-host --label rust \
   --out engine-rs/tools/smoke/results/rust.json
 python3 engine-rs/tools/smoke/phone.py \
   --out engine-rs/tools/smoke/results/phone.json
@@ -41,8 +41,8 @@ starting the timer, without injecting its metadata into the engine.
 Limits: 512 KiB/s download setting, 32 MiB RAM cache, 55 peers, five 64 KiB range
 reads, a 60-second observation window, 360-second process deadline and a
 conservative 128 MiB allocation/peer-byte watchdog below the 200 MiB per-download
-ceiling. Work is confined to `/home/kar/.cache/wt-tmp/codex-smoke`; the target
-directory is `/home/kar/.cache/wt-targets/codex-smoke`. A safety stop is a failure.
+ceiling. Work is confined to `~/.cache/wt-tmp/codex-smoke`; the target
+directory is `~/.cache/wt-targets/codex-smoke`. A safety stop is a failure.
 Metadata has Android's 90-second prepare timeout, configuration has a 65-second
 client timeout around the engine's 60-second wait, and each stream has a
 20-second socket timeout. `--seconds 1` is a quick diagnostic, not the measured

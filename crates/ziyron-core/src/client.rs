@@ -997,7 +997,7 @@ impl ClientInner {
                             } else {
                                 "other"
                             };
-                            eprintln!(
+                            tracing::debug!(
                                 "dial_fail kind={kind} src={:?} addr={} err={}",
                                 peer.source,
                                 peer.addr,
@@ -1031,7 +1031,7 @@ impl ClientInner {
                                 .get(&peer.addr)
                                 .map(|h| format!("{:?}", h.transport()))
                                 .unwrap_or_else(|| "?".into());
-                            eprintln!(
+                            tracing::debug!(
                                 "dial_ok src={:?} transport={} addr={}",
                                 peer.source, transport, peer.addr
                             );

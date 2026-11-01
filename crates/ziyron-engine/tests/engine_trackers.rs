@@ -1,11 +1,11 @@
 //! Integration tests ported from `engine-go/trackers_test.go`.
 //!
-//! Drive [`engine::EngineServer`] via `dispatch_control` (JNI control path)
-//! and public tracker functions in [`engine::trackers`].
+//! Drive [`ziyron_engine::EngineServer`] via `dispatch_control` (JNI control path)
+//! and public tracker functions in [`ziyron_engine::trackers`].
 
 mod support;
 use base64::Engine as _;
-use engine::trackers::{
+use ziyron_engine::trackers::{
     DEFAULT_ANNOUNCE, TRACKER_LIST_LIMIT, TrackerPool, clean_supplied_trackers, parse_tracker_list,
     public_tracker_url,
 };
@@ -99,7 +99,7 @@ fn test_tracker_cache_conditional_refresh_and_failure() {
             }
             2 => respond(stream, 503, "", b""),
             3 => respond(stream, 200, "", b"<html>temporary error</html>"),
-            4 => respond(stream, 200, "", &vec![b'x'; engine::trackers::TRACKER_RESPONSE_LIMIT + 1]),
+            4 => respond(stream, 200, "", &vec![b'x'; ziyron_engine::trackers::TRACKER_RESPONSE_LIMIT + 1]),
             _ => unreachable!(),
         }
     });
@@ -121,11 +121,11 @@ fn test_tracker_cache_conditional_refresh_and_failure() {
     assert!(!refresh(now + Duration::from_secs(3600)).unwrap());
     assert_eq!(calls.load(Ordering::SeqCst), 1, "fresh cache fetched again");
     mode.store(1, Ordering::SeqCst);
-    now += engine::trackers::TRACKER_REFRESH_INTERVAL;
+    now += ziyron_engine::trackers::TRACKER_REFRESH_INTERVAL;
     assert!(!refresh(now).unwrap(), "304 changed tracker set");
     for bad in [2, 3, 4] {
         mode.store(bad, Ordering::SeqCst);
-        now += engine::trackers::TRACKER_REFRESH_INTERVAL;
+        now += ziyron_engine::trackers::TRACKER_REFRESH_INTERVAL;
         assert!(refresh(now).is_err(), "accepted response {bad}");
         assert_eq!(pool.snapshot(), want, "failure replaced cache");
         let previous = calls.load(Ordering::SeqCst);
@@ -230,8 +230,8 @@ fn test_tracker_refresh_is_bounded_for_existing_torrents() {
         eng.server.refresh_torrent_trackers();
     }
     let rec = record.read();
-    assert_eq!(rec.supplemental_trackers, engine::trackers::TRACKER_SUPPLEMENT_LIMIT);
-    assert_eq!(rec.torrent.inner.trackers.read().len(), 1 + engine::trackers::TRACKER_SUPPLEMENT_LIMIT);
+    assert_eq!(rec.supplemental_trackers, ziyron_engine::trackers::TRACKER_SUPPLEMENT_LIMIT);
+    assert_eq!(rec.torrent.inner.trackers.read().len(), 1 + ziyron_engine::trackers::TRACKER_SUPPLEMENT_LIMIT);
     assert!(rec.prepared, "refresh changed prepared state");
     assert!(!rec.configured, "refresh configured torrent");
     assert!(!rec.paused, "refresh paused torrent");

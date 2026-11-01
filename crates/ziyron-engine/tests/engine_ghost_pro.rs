@@ -1,6 +1,6 @@
 //! Integration tests ported from `engine-go/ghost_pro_test.go`.
 //!
-//! Drive [`engine::EngineServer`] via `dispatch_control` (JNI control path)
+//! Drive [`ziyron_engine::EngineServer`] via `dispatch_control` (JNI control path)
 //! and `ziyron_policy::ghost_pro` algorithms.
 
 mod support;
@@ -31,12 +31,12 @@ fn ghost_fixture(piece_length: i64, pieces: usize, direct: bool) -> (TestEngine,
     eng.post_settings(r#"{"ghostProMode":true}"#);
     (eng, id)
 }
-fn window_pieces(reader: &engine::playback::PlaybackReader) -> u32 {
+fn window_pieces(reader: &ziyron_engine::playback::PlaybackReader) -> u32 {
     let w = reader.window_snapshot().unwrap();
     let span = ziyron_policy::piece_span::union_span(&[w.urgent, w.readahead, w.lookahead]);
     span.end - span.begin
 }
-fn settle(reader: &engine::playback::PlaybackReader, offset: i64) {
+fn settle(reader: &ziyron_engine::playback::PlaybackReader, offset: i64) {
     reader.apply_offset(offset);
     reader.finish_focus();
 }

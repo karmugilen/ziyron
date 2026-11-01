@@ -4030,6 +4030,35 @@ dependencies = [
 ]
 
 [[package]]
+name = "ziyron-android"
+version = "0.1.0"
+dependencies = [
+ "android_logger",
+ "jni",
+ "log",
+ "parking_lot",
+ "serde_json",
+ "tempfile",
+ "tokio",
+ "tracing",
+ "ziyron-engine",
+ "ziyron-storage",
+]
+
+[[package]]
+name = "ziyron-cli"
+version = "0.1.0"
+dependencies = [
+ "base64 0.22.1",
+ "clap",
+ "ctrlc",
+ "serde_json",
+ "tokio",
+ "ziyron-engine",
+ "ziyron-meta",
+]
+
+[[package]]
 name = "ziyron-core"
 version = "0.1.0"
 dependencies = [
@@ -4091,14 +4120,12 @@ dependencies = [
 name = "ziyron-engine"
 version = "0.1.0"
 dependencies = [
- "android_logger",
  "base64 0.22.1",
  "bytes",
  "futures",
  "http-body-util",
  "hyper",
  "hyper-util",
- "jni",
  "libc",
  "log",
  "maxminddb",
