@@ -31,6 +31,9 @@ cargo build --release -p ziyron-cli
 
 ## Why Ziyron
 
+These are design choices. For measured results, including where Ziyron is
+behind, see [Measured results](#measured-results).
+
 **Seeking comes first.** Most of a seek's wait is peers holding blocks, so the
 scheduler is built around that wait:
 
@@ -57,22 +60,48 @@ a URL can use it.
 
 ## Measured results
 
+### Against other engines
+
+The Sintel torrent (129 MiB) was downloaded on one Linux machine with
+[tools/bench/compare.py](tools/bench/compare.py). This is **one round on a public
+swarm**, so the times are not a verdict.
+
+| Engine | Version | Time (s) | CPU time (s) | Peak RAM (MiB) |
+|---|---|---:|---:|---:|
+| **Ziyron** | 0.1.0 | **25.6** | 2.51 | 374 |
+| rqbit | 9.1.0 | 27.5 | 1.89 | 35 |
+| WebTorrent | 5.1.3 | 35.0 | 15.19 | 238 |
+| aria2 | 1.37.0 | 42.1 | **1.34** | **22** |
+| libtorrent | 2.1.1.0 | 63.3 | 1.87 | 47 |
+
+Six more Ziyron runs took 23-50 s, used 2.35-2.99 s of CPU and peaked at
+301-388 MiB.
+
+**Ziyron's weak spot is memory.** It peaked at about ten times rqbit's RAM and
+used more CPU than every engine here except WebTorrent. The cause of the high
+RAM is not known yet. Lowering the saved-download cache minimum from 256 MiB to
+16 MiB made no clear difference, and a figure excluding cache has not been
+measured. Peak RAM here is the whole process.
+
+### Seeking
+
 | What | Result | Conditions |
 |---|---|---|
 | Seek to data already cached, 2 MiB ready | 16-28 ms | One Android phone |
-| Seek over the network, 2 MiB ready | 1060 ms median in the best run; 1080-1467 ms in others | One Android phone, real swarm, not controlled |
+| Seek over the network, 2 MiB ready | 1060 ms median in the best run; 1080-1467 ms in others | One Android phone, real swarm |
 | Seek over the network, first bytes | 292 ms median in the best run | Same |
-| Whole Sintel torrent with `ziyron download`, 129 MiB video | Under 60 s, about 6 MiB/s near the end; all 987 pieces checked separately | One run on Linux, real swarm |
-| Local transfer speed | About 423 MiB/s, against 296 MiB/s for the Go engine at the time | `ziyron-parity` on one machine |
+| 1 MiB from the middle of Sintel with `ziyron stream` | About 1 s | One request, Linux, real swarm |
 
-Read these with care:
+Seek medians for the same scheduler vary by at least 25% between runs. Other
+engines' seek times have not been measured, so **Ziyron cannot yet be called
+faster at seeking than they are**.
 
-- Seek medians for the same scheduler vary by at least 25% between runs.
-- Ziyron is not ahead everywhere. In a five-run storage benchmark on a noisy
-  host, sequential write had a median of 121 MiB/s against 512 MiB/s for the Go
-  engine. See [BENCH.md](crates/ziyron-storage/BENCH.md).
-- **No head-to-head test has been run against libtorrent, rqbit or WebTorrent.**
-  Ziyron should not be called faster than them until one has.
+### Against the old Go engine
+
+- **Local transfer:** about 423 MiB/s against 296 MiB/s, using `ziyron-parity`.
+- **Storage:** Ziyron is not ahead everywhere. On a noisy host, sequential write
+  had a median of 121 MiB/s against 512 MiB/s. See
+  [BENCH.md](crates/ziyron-storage/BENCH.md).
 
 ## How it compares
 
@@ -86,10 +115,28 @@ Read these with care:
 
 ## Protocol support
 
-- **Peers:** BitTorrent v1 and v2, TCP and uTP with LEDBAT, encrypted connections, hole punching
-- **Finding peers:** trackers (HTTP, UDP, WebSocket), DHT, peer exchange, local discovery
-- **Other sources:** web seeds, WebTorrent peers
-- **Network:** IPv4 and IPv6, router port mapping
+Ziyron's column comes from its source code. The others are from general
+knowledge of each project and were not tested here; `?` means not confirmed.
+Please open an issue if one is wrong.
+
+| Feature | Ziyron | libtorrent | rqbit | aria2 | WebTorrent |
+|---|---|---|---|---|---|
+| BitTorrent v1 | Yes | Yes | Yes | Yes | Yes |
+| BitTorrent v2 (BEP 52) | Yes | Yes | ? | No | ? |
+| Magnet links | Yes | Yes | Yes | Yes | Yes |
+| TCP peers | Yes | Yes | Yes | Yes | Yes |
+| uTP peers | Yes | Yes | ? | No | ? |
+| Encrypted connections (MSE) | Yes | Yes | ? | Yes | ? |
+| Hole punching | Yes | Yes | ? | ? | ? |
+| WebRTC peers (WebTorrent) | Yes | ? | ? | No | Yes |
+| HTTP and UDP trackers | Yes | Yes | Yes | Yes | Yes |
+| WebSocket trackers | Yes | ? | ? | No | Yes |
+| DHT | Yes | Yes | Yes | Yes | Yes |
+| Peer exchange | Yes | Yes | Yes | Yes | Yes |
+| Local peer discovery | Yes | Yes | ? | Yes | ? |
+| Web seeds | Yes | Yes | ? | Yes | Yes |
+| IPv6 | Yes | Yes | ? | Yes | ? |
+| HTTP streaming with seeking | Yes | No (library has no HTTP server) | Yes | No | Yes |
 
 ## Crates
 
@@ -107,18 +154,61 @@ Read these with care:
 | `ziyron-cli` | The `ziyron` command-line tool |
 | `ziyron-parity` | Performance benchmark |
 
-## Other builds
+## Add Ziyron to your app
 
-- **Control server:** `cargo build --release -p ziyron-engine --bin engine-host`
-  gives you a localhost HTTP API for building your own app.
-- **Android:** see [docs/ANDROID_BUILD.md](docs/ANDROID_BUILD.md).
+Ziyron runs on Linux and Android. There are three ways to use it.
+
+### From any language: HTTP API
+
+Start the local control server, then send it JSON:
+
+```sh
+cargo build --release -p ziyron-engine --bin engine-host
+./target/release/engine-host --port 18080 --path ./downloads
+
+# Add a torrent. The reply contains its id
+curl -X POST localhost:18080/add -d '{"torrentId":"magnet:?xt=urn:btih:..."}'
+
+# Status, including the file list once metadata arrives
+curl localhost:18080/torrent/ID
+
+# Choose files. "descriptors" needs one entry per file in the torrent
+curl -X POST localhost:18080/configure \
+  -d '{"id":"ID","descriptors":[null],"selected":[0],"storageMode":"stream"}'
+
+# Get a URL any video player can open
+curl -X POST localhost:18080/play -d '{"id":"ID","fileIndex":0}'
+```
+
+Use `"storageMode":"download"` to save files. With `null` descriptors, the engine
+keeps data in its own files under `--path`. Other routes include `/pause`,
+`/resume`, `/remove`, `/stats` and `/settings`.
+
+### From Rust
+
+```toml
+[dependencies]
+ziyron-engine = { git = "https://github.com/karmugilen/ziyron" }
+```
+
+Call the same routes in-process with `EngineServer::request`, inside a Tokio
+runtime. [crates/ziyron-cli/src/main.rs](crates/ziyron-cli/src/main.rs) is a
+complete, short example. A simpler typed API is on the roadmap.
+
+### From Android
+
+Build `ziyron-android` into `libengine.so`, as described in
+[docs/ANDROID_BUILD.md](docs/ANDROID_BUILD.md). Its JNI names currently expect
+the class `webtor.app.EngineHost`.
 
 ## Roadmap
 
-- A head-to-head benchmark against libtorrent, rqbit and WebTorrent
+- Find and reduce the high peak RAM, then lower CPU use
+- More benchmark rounds, including seek times against other engines
+- A simple typed Rust API
 - The full test suite in CI
 - A stable public Rust API
-- Windows support: the engine currently uses Unix file descriptors
+- macOS and Windows support: the engine currently uses Linux-only calls
 
 ## Licence
 
