@@ -1,7 +1,7 @@
 # Building the Android APK with Go or Rust engine
 
 The Android app loads `libengine.so` via `EngineHost.kt` (`System.loadLibrary("engine")`).
-Either the Go engine (`engine-go/`) or the Rust engine (`engine-rs/crates/wt-engine`) can
+Either the Go engine (`engine-go/`) or the Rust engine (`engine-rs/crates/ziyron-engine`) can
 produce that library. Select with a Gradle property.
 
 ## Requirements
@@ -88,11 +88,11 @@ Desktop control binary (port of `engine-go/main_host.go`):
 
 ```sh
 cd engine-rs
-CARGO_TARGET_DIR=/home/kar/.cache/wt-targets/wt-engine-jni CARGO_BUILD_JOBS=3 \
-  cargo build -p wt-engine --bin engine-host
+CARGO_TARGET_DIR=/home/kar/.cache/wt-targets/ziyron-engine-jni CARGO_BUILD_JOBS=3 \
+  cargo build -p ziyron-engine --bin engine-host
 
 # Run (control HTTP on 127.0.0.1:18080 by default)
-/home/kar/.cache/wt-targets/wt-engine-jni/debug/engine-host \
+/home/kar/.cache/wt-targets/ziyron-engine-jni/debug/engine-host \
   -port 18080 -path /tmp/webtorrent -max-peers 55
 
 curl -s http://127.0.0.1:18080/stats

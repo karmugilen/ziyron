@@ -1,15 +1,15 @@
 [workspace]
 resolver = "2"
 members = [
-    "crates/wt-types",
-    "crates/wt-meta",
-    "crates/wt-wire",
-    "crates/wt-discovery",
-    "crates/wt-core",
-    "crates/wt-storage",
-    "crates/wt-policy",
-    "crates/wt-engine",
-    "crates/wt-parity",
+    "crates/ziyron-types",
+    "crates/ziyron-meta",
+    "crates/ziyron-wire",
+    "crates/ziyron-discovery",
+    "crates/ziyron-core",
+    "crates/ziyron-storage",
+    "crates/ziyron-policy",
+    "crates/ziyron-engine",
+    "crates/ziyron-parity",
 ]
 
 [workspace.package]
@@ -20,13 +20,13 @@ publish = false
 rust-version = "1.85"
 
 [workspace.dependencies]
-wt-types = { path = "crates/wt-types" }
-wt-meta = { path = "crates/wt-meta" }
-wt-wire = { path = "crates/wt-wire" }
-wt-discovery = { path = "crates/wt-discovery" }
-wt-core = { path = "crates/wt-core" }
-wt-storage = { path = "crates/wt-storage" }
-wt-policy = { path = "crates/wt-policy" }
+ziyron-types = { path = "crates/ziyron-types" }
+ziyron-meta = { path = "crates/ziyron-meta" }
+ziyron-wire = { path = "crates/ziyron-wire" }
+ziyron-discovery = { path = "crates/ziyron-discovery" }
+ziyron-core = { path = "crates/ziyron-core" }
+ziyron-storage = { path = "crates/ziyron-storage" }
+ziyron-policy = { path = "crates/ziyron-policy" }
 tokio = { version = "1", features = ["full"] }
 bytes = "1"
 thiserror = "2"

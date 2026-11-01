@@ -3874,191 +3874,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "3ad82d2a33cdc9674dc7465672f271e096168fcdbe0f799d9e6db8c5892679dc"
 
 [[package]]
-name = "wt-core"
-version = "0.1.0"
-dependencies = [
- "bytes",
- "hex",
- "mainline",
- "parking_lot",
- "rand 0.8.8",
- "ring",
- "roaring",
- "serde",
- "serde_json",
- "sha1",
- "sha2 0.10.9",
- "thiserror 2.0.21",
- "tokio",
- "tracing",
- "wt-discovery",
- "wt-meta",
- "wt-types",
- "wt-wire",
-]
-
-[[package]]
-name = "wt-discovery"
-version = "0.1.0"
-dependencies = [
- "anyhow",
- "bytes",
- "crc32c",
- "futures",
- "hex",
- "http",
- "mainline",
- "parking_lot",
- "rand 0.8.8",
- "reqwest",
- "rustls",
- "serde",
- "serde_json",
- "sha1",
- "socket2 0.6.5",
- "tempfile",
- "thiserror 2.0.21",
- "tokio",
- "tokio-rustls",
- "tokio-tungstenite",
- "tokio-util",
- "tracing",
- "tracing-subscriber",
- "url",
- "webpki-roots 0.26.11",
- "webrtc",
- "wt-meta",
- "wt-types",
-]
-
-[[package]]
-name = "wt-engine"
-version = "0.1.0"
-dependencies = [
- "android_logger",
- "base64 0.22.1",
- "bytes",
- "futures",
- "http-body-util",
- "hyper",
- "hyper-util",
- "jni",
- "libc",
- "log",
- "maxminddb",
- "mimalloc",
- "parking_lot",
- "rand 0.8.8",
- "reqwest",
- "serde",
- "serde_json",
- "sha1",
- "sha2 0.10.9",
- "tempfile",
- "tokio",
- "tracing",
- "tracing-subscriber",
- "url",
- "wt-core",
- "wt-meta",
- "wt-policy",
- "wt-storage",
- "wt-types",
- "wt-wire",
-]
-
-[[package]]
-name = "wt-meta"
-version = "0.1.0"
-dependencies = [
- "data-encoding",
- "hex",
- "quickcheck",
- "quickcheck_macros",
- "sha1",
- "sha2 0.10.9",
- "wt-types",
-]
-
-[[package]]
-name = "wt-parity"
-version = "0.1.0"
-dependencies = [
- "base64 0.22.1",
- "clap",
- "ctrlc",
- "hex",
- "libc",
- "rand 0.8.8",
- "serde",
- "serde_json",
- "sha1",
- "wt-meta",
- "wt-types",
-]
-
-[[package]]
-name = "wt-policy"
-version = "0.1.0"
-dependencies = [
- "bytes",
- "parking_lot",
- "pin-project-lite",
- "serde",
- "serde_json",
- "thiserror 2.0.21",
- "tokio",
- "wt-types",
-]
-
-[[package]]
-name = "wt-storage"
-version = "0.1.0"
-dependencies = [
- "hex",
- "libc",
- "parking_lot",
- "rand 0.8.8",
- "serde",
- "serde_json",
- "sha1",
- "sha2 0.10.9",
- "tempfile",
- "thiserror 2.0.21",
- "tracing",
- "wt-meta",
- "wt-types",
-]
-
-[[package]]
-name = "wt-types"
-version = "0.1.0"
-dependencies = [
- "hex",
- "thiserror 2.0.21",
-]
-
-[[package]]
-name = "wt-wire"
-version = "0.1.0"
-dependencies = [
- "bytes",
- "hex",
- "nix 0.31.3",
- "num-bigint",
- "parking_lot",
- "rand 0.8.8",
- "sha1",
- "sha2 0.10.9",
- "socket2 0.5.10",
- "thiserror 2.0.21",
- "tokio",
- "tracing",
- "wt-meta",
- "wt-types",
-]
-
-[[package]]
 name = "x25519-dalek"
 version = "2.0.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -4212,6 +4027,191 @@ dependencies = [
  "proc-macro2",
  "quote",
  "syn 3.0.9",
+]
+
+[[package]]
+name = "ziyron-core"
+version = "0.1.0"
+dependencies = [
+ "bytes",
+ "hex",
+ "mainline",
+ "parking_lot",
+ "rand 0.8.8",
+ "ring",
+ "roaring",
+ "serde",
+ "serde_json",
+ "sha1",
+ "sha2 0.10.9",
+ "thiserror 2.0.21",
+ "tokio",
+ "tracing",
+ "ziyron-discovery",
+ "ziyron-meta",
+ "ziyron-types",
+ "ziyron-wire",
+]
+
+[[package]]
+name = "ziyron-discovery"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "bytes",
+ "crc32c",
+ "futures",
+ "hex",
+ "http",
+ "mainline",
+ "parking_lot",
+ "rand 0.8.8",
+ "reqwest",
+ "rustls",
+ "serde",
+ "serde_json",
+ "sha1",
+ "socket2 0.6.5",
+ "tempfile",
+ "thiserror 2.0.21",
+ "tokio",
+ "tokio-rustls",
+ "tokio-tungstenite",
+ "tokio-util",
+ "tracing",
+ "tracing-subscriber",
+ "url",
+ "webpki-roots 0.26.11",
+ "webrtc",
+ "ziyron-meta",
+ "ziyron-types",
+]
+
+[[package]]
+name = "ziyron-engine"
+version = "0.1.0"
+dependencies = [
+ "android_logger",
+ "base64 0.22.1",
+ "bytes",
+ "futures",
+ "http-body-util",
+ "hyper",
+ "hyper-util",
+ "jni",
+ "libc",
+ "log",
+ "maxminddb",
+ "mimalloc",
+ "parking_lot",
+ "rand 0.8.8",
+ "reqwest",
+ "serde",
+ "serde_json",
+ "sha1",
+ "sha2 0.10.9",
+ "tempfile",
+ "tokio",
+ "tracing",
+ "tracing-subscriber",
+ "url",
+ "ziyron-core",
+ "ziyron-meta",
+ "ziyron-policy",
+ "ziyron-storage",
+ "ziyron-types",
+ "ziyron-wire",
+]
+
+[[package]]
+name = "ziyron-meta"
+version = "0.1.0"
+dependencies = [
+ "data-encoding",
+ "hex",
+ "quickcheck",
+ "quickcheck_macros",
+ "sha1",
+ "sha2 0.10.9",
+ "ziyron-types",
+]
+
+[[package]]
+name = "ziyron-parity"
+version = "0.1.0"
+dependencies = [
+ "base64 0.22.1",
+ "clap",
+ "ctrlc",
+ "hex",
+ "libc",
+ "rand 0.8.8",
+ "serde",
+ "serde_json",
+ "sha1",
+ "ziyron-meta",
+ "ziyron-types",
+]
+
+[[package]]
+name = "ziyron-policy"
+version = "0.1.0"
+dependencies = [
+ "bytes",
+ "parking_lot",
+ "pin-project-lite",
+ "serde",
+ "serde_json",
+ "thiserror 2.0.21",
+ "tokio",
+ "ziyron-types",
+]
+
+[[package]]
+name = "ziyron-storage"
+version = "0.1.0"
+dependencies = [
+ "hex",
+ "libc",
+ "parking_lot",
+ "rand 0.8.8",
+ "serde",
+ "serde_json",
+ "sha1",
+ "sha2 0.10.9",
+ "tempfile",
+ "thiserror 2.0.21",
+ "tracing",
+ "ziyron-meta",
+ "ziyron-types",
+]
+
+[[package]]
+name = "ziyron-types"
+version = "0.1.0"
+dependencies = [
+ "hex",
+ "thiserror 2.0.21",
+]
+
+[[package]]
+name = "ziyron-wire"
+version = "0.1.0"
+dependencies = [
+ "bytes",
+ "hex",
+ "nix 0.31.3",
+ "num-bigint",
+ "parking_lot",
+ "rand 0.8.8",
+ "sha1",
+ "sha2 0.10.9",
+ "socket2 0.5.10",
+ "thiserror 2.0.21",
+ "tokio",
+ "tracing",
+ "ziyron-meta",
+ "ziyron-types",
 ]
 
 [[package]]

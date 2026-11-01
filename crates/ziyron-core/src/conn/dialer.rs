@@ -1,0 +1,421 @@
+//! Outgoing peer connection dialing, encryption, and handshaking.
+//!
+//! Matches anacrolix `dialAndCompleteHandshake` + `dialPool`:
+//! - Race enabled transports (TCP+uTP) under one half-open slot; take the first
+//!   successful dial (Go `dialPool.getFirst`).
+//! - Try preferred header-obfuscation, then fall back on the *same* winning
+//!   transport when `RequirePreferred` is false.
+//!
+//! LTEP / HaveNone are sent by `PeerConnHandler::start` (Go sendInitialMessages).
+
+use std::net::SocketAddr;
+use std::sync::atomic::{AtomicBool, AtomicU32, Ordering};
+use std::sync::Arc;
+use std::time::Duration;
+
+use tokio::sync::{mpsc, Notify};
+use ziyron_types::{InfoHash, PeerId, PeerSource, Transport};
+use ziyron_wire::handshake::{default_peer_extension_bytes, handshake, PeerExtensionBits};
+use ziyron_wire::message::Message;
+use ziyron_wire::mse::{self, CryptoMethod};
+use ziyron_wire::utp::UtpSocket;
+
+use crate::conn::half_open::HalfOpenTracker;
+use crate::conn::handle::ConnHandle;
+use crate::ratelimit::Limiter;
+use crate::stats::AtomicConnStats;
+use crate::{ClientConfig, CoreError, PeerStream, Result, TcpConnHook};
+
+/// First-attempt handshakes that worked and failed: encrypted, then plain.
+static FIRST_TRY: [[AtomicU32; 2]; 2] =
+    [[AtomicU32::new(0), AtomicU32::new(0)], [AtomicU32::new(0), AtomicU32::new(0)]];
+static FIRST_TRY_TURN: AtomicU32 = AtomicU32::new(0);
+/// Handshakes per mode before trusting the comparison.
+const FIRST_TRY_MIN_SAMPLES: u32 = 20;
+
+fn first_try_rate(plain: bool) -> (f64, u32) {
+    let [ok, failed] = &FIRST_TRY[usize::from(plain)];
+    let (ok, failed) = (ok.load(Ordering::Relaxed), failed.load(Ordering::Relaxed));
+    (f64::from(ok + 1) / f64::from(ok + failed + 2), ok + failed)
+}
+
+/// What worked on one network says nothing about the next.
+pub(crate) fn forget_first_try_stats() {
+    for slot in FIRST_TRY.iter().flatten() {
+        slot.store(0, Ordering::Relaxed);
+    }
+}
+
+/// Encrypted first unless plain has clearly worked better on this network. An
+/// encrypted first try costs round trips; on some networks plain is what gets
+/// blocked. One dial in eight tries the other order, to keep learning.
+fn try_encrypted_first() -> bool {
+    let (encrypted, encrypted_samples) = first_try_rate(false);
+    let (plain, plain_samples) = first_try_rate(true);
+    let plain_wins = encrypted_samples >= FIRST_TRY_MIN_SAMPLES
+        && plain_samples >= FIRST_TRY_MIN_SAMPLES
+        && plain > encrypted + 0.1;
+    let explore = FIRST_TRY_TURN.fetch_add(1, Ordering::Relaxed) % 8 == 0;
+    plain_wins == explore
+}
+
+/// Outcome of a successful outgoing dial and handshake.
+pub struct DialOutcome {
+    pub stream: Box<dyn PeerStream>,
+    pub handle: ConnHandle,
+    pub write_rx: mpsc::UnboundedReceiver<Message>,
+    pub write_waker: Arc<Notify>,
+    pub peer_extension_bits: PeerExtensionBits,
+    pub peer_id: PeerId,
+}
+
+/// Parameters for initiating an outgoing peer connection.
+pub struct DialParams<'a> {
+    pub remote_addr: SocketAddr,
+    pub info_hash: InfoHash,
+    pub our_peer_id: PeerId,
+    /// `None` = race every enabled transport (Go dialPool). `Some` = only that one.
+    pub transport: Option<Transport>,
+    pub source: PeerSource,
+    pub metadata_size: Option<u32>,
+    pub cfg: &'a ClientConfig,
+    pub tracker: &'a HalfOpenTracker,
+    pub dial_limiter: Option<&'a Limiter>,
+    pub tcp_conn_hook: Option<&'a TcpConnHook>,
+    pub utp_socket: Option<&'a Arc<UtpSocket>>,
+    pub require_plain: bool,
+}
+
+/// Dials an outgoing peer, negotiates MSE (with plaintext/encrypted fallback), and
+/// completes the BitTorrent handshake. LTEP is deferred to `PeerConnHandler::start`.
+pub async fn dial_peer(params: DialParams<'_>) -> Result<DialOutcome> {
+    let cfg = params.cfg;
+
+    let _global_guard = params
+        .tracker
+        .acquire_global(cfg.total_half_open_conns)
+        .ok_or_else(|| CoreError::Other("global half-open limit exceeded".to_string()))?;
+
+    let _torrent_guard = params
+        .tracker
+        .acquire_torrent(params.info_hash, cfg.half_open_conns_per_torrent)
+        .ok_or_else(|| CoreError::Other("torrent half-open limit exceeded".to_string()))?;
+
+    if let Some(limiter) = params.dial_limiter {
+        if let Some(delay) = limiter.reserve_delay(1) {
+            if !delay.is_zero() {
+                tokio::time::sleep(delay).await;
+            }
+        }
+    }
+
+    let policy = cfg.header_obfuscation_policy;
+    let prefer_obfuscated = if params.require_plain {
+        false
+    } else if policy.preferred && !policy.require_preferred {
+        try_encrypted_first()
+    } else {
+        policy.preferred
+    };
+    let allow_fallback = !params.require_plain && !cfg.header_obfuscation_policy.require_preferred;
+
+    let dial_timeout = cfg.nominal_dial_timeout.max(cfg.min_dial_timeout);
+
+    let mut pool = DialPool::default();
+    for transport in candidate_transports(&params) {
+        pool.add(&params, transport, dial_timeout);
+    }
+    let (stream, transport) = pool.get_first().await?;
+    let first = complete_bt_handshake(
+        &params,
+        stream,
+        transport,
+        prefer_obfuscated,
+        cfg.handshakes_timeout,
+    )
+    .await;
+    if !params.require_plain {
+        let slot = &FIRST_TRY[usize::from(!prefer_obfuscated)][usize::from(first.is_err())];
+        slot.fetch_add(1, Ordering::Relaxed);
+    }
+    match first {
+        Ok(outcome) => Ok(outcome),
+        Err(first_err) if allow_fallback => {
+            tracing::debug!(
+                addr = %params.remote_addr,
+                ?transport,
+                obfuscated = prefer_obfuscated,
+                error = %first_err,
+                "preferred header obfuscation failed; trying fallback"
+            );
+            // Go dialAndCompleteHandshake adds the winning dialer back to the
+            // original pool. Its redial races any transport still in flight;
+            // only the next success gets the opposite-obfuscation handshake.
+            pool.add(&params, transport, dial_timeout);
+            let (stream, transport) = pool.get_first().await?;
+            complete_bt_handshake(
+                &params,
+                stream,
+                transport,
+                !prefer_obfuscated,
+                cfg.handshakes_timeout,
+            )
+            .await
+        }
+        Err(err) => Err(err),
+    }
+}
+
+/// Go dialPool: start all transports, hand off each first success immediately,
+/// and keep the other dials available until the handshake decision is made.
+/// Dropping the JoinSet cancels pending dials and drops unused connected streams
+/// (Go's deferred context cancellation and drainAndCloseRemainingDials).
+#[derive(Default)]
+struct DialPool {
+    dials: tokio::task::JoinSet<(Transport, Result<Box<dyn PeerStream>>)>,
+}
+
+impl DialPool {
+    fn add(&mut self, params: &DialParams<'_>, transport: Transport, timeout: Duration) {
+        let addr = params.remote_addr;
+        let disable_tcp = params.cfg.disable_tcp;
+        let disable_utp = params.cfg.disable_utp;
+        let hook = params.tcp_conn_hook.cloned();
+        let utp = params.utp_socket.cloned();
+        self.dials.spawn(async move {
+            let result = dial_raw_owned(
+                addr,
+                transport,
+                timeout,
+                disable_tcp,
+                disable_utp,
+                hook.as_ref(),
+                utp.as_ref(),
+            )
+            .await;
+            (transport, result)
+        });
+    }
+
+    async fn get_first(&mut self) -> Result<(Box<dyn PeerStream>, Transport)> {
+        let mut last_err = None;
+        while let Some(result) = self.dials.join_next().await {
+            match result {
+                Ok((transport, Ok(stream))) => return Ok((stream, transport)),
+                Ok((_, Err(err))) => last_err = Some(err),
+                Err(err) => last_err = Some(CoreError::Other(format!("dial task failed: {err}"))),
+            }
+        }
+        Err(last_err.unwrap_or_else(|| CoreError::Other("all initial dials failed".into())))
+    }
+}
+
+fn candidate_transports(params: &DialParams<'_>) -> Vec<Transport> {
+    if let Some(t) = params.transport {
+        return vec![t];
+    }
+    let mut out = Vec::with_capacity(2);
+    if !params.cfg.disable_tcp {
+        out.push(Transport::Tcp);
+    }
+    if !params.cfg.disable_utp {
+        out.push(Transport::Utp);
+    }
+    out
+}
+
+async fn complete_bt_handshake(
+    params: &DialParams<'_>,
+    raw_stream: Box<dyn PeerStream>,
+    chosen_transport: Transport,
+    use_header_obfuscation: bool,
+    hs_timeout: Duration,
+) -> Result<DialOutcome> {
+    let cfg = params.cfg;
+    // Go sets one connection deadline before both protocol handshakes.
+    let deadline = tokio::time::Instant::now() + hs_timeout;
+
+    let (mut stream, is_encrypted): (Box<dyn PeerStream>, bool) = if use_header_obfuscation {
+        let provides = if cfg.header_obfuscation_policy.preferred
+            && cfg.header_obfuscation_policy.require_preferred
+        {
+            CryptoMethod::RC4
+        } else {
+            CryptoMethod::ALL
+        };
+        let mse_fut = mse::initiate_handshake(raw_stream, &params.info_hash.0, None, provides);
+        let (encrypted_stream, crypto_method) = tokio::time::timeout_at(deadline, mse_fut)
+            .await
+            .map_err(|_| CoreError::Other("MSE handshake timeout".to_string()))?
+            .map_err(|e| CoreError::Other(format!("MSE negotiation failed: {e}")))?;
+        (
+            Box::new(encrypted_stream),
+            crypto_method == CryptoMethod::RC4,
+        )
+    } else {
+        (raw_stream, false)
+    };
+
+    let reserved_bits = default_peer_extension_bytes();
+    let hs_fut = handshake(
+        &mut stream,
+        &params.info_hash,
+        &params.our_peer_id,
+        &reserved_bits,
+    );
+    let peer_hs = tokio::time::timeout_at(deadline, hs_fut)
+        .await
+        .map_err(|_| CoreError::Other("BitTorrent handshake timeout".to_string()))?
+        .map_err(|e| CoreError::Other(format!("BitTorrent handshake failed: {e}")))?;
+
+    if peer_hs.info_hash != params.info_hash {
+        return Err(CoreError::Other("peer returned mismatched InfoHash".into()));
+    }
+
+    let peer_ext_bits = peer_hs.extensions;
+    let peer_id = peer_hs.peer_id;
+
+    let (write_tx, write_rx) = mpsc::unbounded_channel();
+    let write_waker = Arc::new(Notify::new());
+    let closed = Arc::new(AtomicBool::new(false));
+    let stats = Arc::new(AtomicConnStats::default());
+
+    let handle = ConnHandle::new(
+        params.remote_addr,
+        true,
+        chosen_transport,
+        is_encrypted,
+        params.info_hash,
+        Some(peer_id),
+        params.source,
+        peer_ext_bits.0,
+        write_tx,
+        write_waker.clone(),
+        closed,
+        stats,
+    );
+
+    let _ = params.metadata_size;
+
+    Ok(DialOutcome {
+        stream,
+        handle,
+        write_rx,
+        write_waker,
+        peer_extension_bits: peer_ext_bits,
+        peer_id,
+    })
+}
+
+async fn dial_raw_owned(
+    remote_addr: SocketAddr,
+    chosen_transport: Transport,
+    dial_timeout: Duration,
+    disable_tcp: bool,
+    disable_utp: bool,
+    tcp_conn_hook: Option<&TcpConnHook>,
+    utp_socket: Option<&Arc<UtpSocket>>,
+) -> Result<Box<dyn PeerStream>> {
+    match chosen_transport {
+        Transport::Tcp => {
+            if disable_tcp {
+                return Err(CoreError::Other("TCP transport disabled".to_string()));
+            }
+            let tcp =
+                tokio::time::timeout(dial_timeout, tokio::net::TcpStream::connect(remote_addr))
+                    .await
+                    .map_err(|_| CoreError::Other("TCP connect timeout".to_string()))?
+                    .map_err(CoreError::Io)?;
+            // Request/piece pipelining is latency-sensitive; Nagle delays
+            // small Request messages behind larger writes.
+            let _ = tcp.set_nodelay(true);
+
+            if let Some(hook) = tcp_conn_hook {
+                Ok(hook(tcp))
+            } else {
+                Ok(Box::new(tcp))
+            }
+        }
+        Transport::Utp => {
+            if disable_utp {
+                return Err(CoreError::Other("uTP transport disabled".to_string()));
+            }
+            // Go dials from its listening uTP socket. Reuse that endpoint and
+            // its discovery/NAT mapping; create a private socket only for
+            // standalone dial_peer callers that have no listener.
+            let sock = match utp_socket {
+                Some(socket) => Arc::clone(socket),
+                None => {
+                    let bind_addr = if remote_addr.is_ipv4() {
+                        "0.0.0.0:0"
+                    } else {
+                        "[::]:0"
+                    };
+                    Arc::new(UtpSocket::bind(bind_addr.parse().unwrap()).await?)
+                }
+            };
+            let utp = ziyron_wire::transport::dial_utp(&sock, remote_addr, dial_timeout)
+                .await
+                .map_err(CoreError::Io)?
+                .with_socket(sock);
+            Ok(Box::new(utp))
+        }
+        other => Err(CoreError::Other(format!(
+            "unsupported transport for dial_peer: {other:?}"
+        ))),
+    }
+}
+
+/// Go `reducedDialTimeout`: shrink nominal timeout as the pending pool grows.
+pub fn reduced_dial_timeout(
+    min_dial_timeout: Duration,
+    nominal: Duration,
+    half_open_limit: usize,
+    pending_peers: usize,
+) -> Duration {
+    let limit = half_open_limit.max(1);
+    let divisor = pending_peers.saturating_add(limit) / limit;
+    (nominal / divisor.max(1) as u32).max(min_dial_timeout)
+}
+
+#[cfg(test)]
+mod reduced_dial_timeout_tests {
+    use super::*;
+    use std::time::Duration;
+
+    #[test]
+    fn reduced_dial_timeout_matches_go_vectors() {
+        let min = Duration::from_secs(2);
+        let nominal = Duration::from_secs(8);
+        let half_open = 24;
+        assert_eq!(reduced_dial_timeout(min, nominal, half_open, 0), nominal);
+        assert_eq!(reduced_dial_timeout(min, nominal, half_open, 23), nominal);
+        assert_eq!(
+            reduced_dial_timeout(min, nominal, half_open, 24),
+            Duration::from_secs(4)
+        );
+        assert_eq!(
+            reduced_dial_timeout(min, nominal, half_open, 48),
+            Duration::from_secs(2).max(nominal / 3)
+        );
+        assert_eq!(reduced_dial_timeout(min, nominal, half_open, 4000), min);
+    }
+
+    #[test]
+    fn reduced_dial_timeout_go_default_config_vectors() {
+        let min = Duration::from_secs(3);
+        let nominal = Duration::from_secs(20);
+        let half_open = 40;
+        assert_eq!(reduced_dial_timeout(min, nominal, half_open, 0), nominal);
+        assert_eq!(reduced_dial_timeout(min, nominal, half_open, 39), nominal);
+        assert_eq!(
+            reduced_dial_timeout(min, nominal, half_open, 40),
+            nominal / 2
+        );
+        assert_eq!(
+            reduced_dial_timeout(min, nominal, half_open, 80),
+            nominal / 3
+        );
+        assert_eq!(reduced_dial_timeout(min, nominal, half_open, 4000), min);
+    }
+}

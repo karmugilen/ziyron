@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Build wt-engine as libengine.so for Android.
+# Build ziyron-engine as libengine.so for Android.
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
@@ -80,7 +80,7 @@ export CARGO_BUILD_JOBS="${CARGO_BUILD_JOBS:-3}"
 
 cd "$ENGINE_RS"
 # One Android release build at a time across ABIs/workers.
-flock "$LOCK_FILE" cargo build --release -p wt-engine --lib --target "$RUST_TARGET"
+flock "$LOCK_FILE" cargo build --release -p ziyron-engine --lib --target "$RUST_TARGET"
 
 SRC_SO="$TARGET_DIR/$RUST_TARGET/release/libengine.so"
 if [ ! -f "$SRC_SO" ]; then

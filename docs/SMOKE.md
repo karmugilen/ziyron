@@ -15,7 +15,7 @@ deletes its payload directory even on failure. No synthetic seeder is involved.
 cd engine-rs
 CARGO_TARGET_DIR=/home/kar/.cache/wt-targets/codex-smoke CARGO_BUILD_JOBS=3 \
   CARGO_INCREMENTAL=0 CARGO_PROFILE_DEV_DEBUG=0 CARGO_PROFILE_TEST_DEBUG=0 \
-  cargo build --release -p wt-engine --bin engine-host
+  cargo build --release -p ziyron-engine --bin engine-host
 cd ../engine-go
 go build -tags=nosqlite,noboltdb -o /home/kar/.cache/wt-tmp/engine-go-host .
 cd ..
@@ -179,12 +179,12 @@ Measured with `tools/smoke/peers_compare.py` (60 s, max-peers 55), same machine.
 - **Mid-file responsive:** playback enables dirty-chunk reads outside startup head/tail (Go applyResponsiveLocked); was always false
 - **drop_chokers loop:** policy sampler now calls `Torrent::drop_chokers(5s)` when setting on (Go dropChokersLoop) — was AtomicBool-only
 - **MSE fallback:** other-transport retries always try both obfuscation modes (preferred=false no longer skips MSE)
-- **SeekTuning wire:** EngineServer now `set_seek_tuning` on new()+settings (Go `baseSeekTuning`); hedge/slowPeerYield/learnedArrival were AtomicBool-only and never reached wt-core
+- **SeekTuning wire:** EngineServer now `set_seek_tuning` on new()+settings (Go `baseSeekTuning`); hedge/slowPeerYield/learnedArrival were AtomicBool-only and never reached ziyron-core
 - **Sticky Interested:** do not send NotInterested while incomplete and peer still has pieces we lack (qBittorrent punishment)
 - **Peak floor:** preserve `peak_requests` while choked; floor at 64 so WholeQueue wakes cannot collapse nominal_max to 2; ceiling 128 so stall cannot walk peak to LTEP reqq 250
 - **MSE preferred fast-fail:** 2s on preferred obfuscation then plaintext/other-transport fallback (was burning 5s × MSE fails)
 - **Half-open:** dial path raises torrent/global half-open to at least 64/128 (engine config may still say 24/48) so timeout-heavy Ubuntu can keep more dials in flight
-- **uTP BEP 29 (wt-wire):** fixed swapped send/recv connection_ids; SYN-ACK `ack_nr = seq-1` (libtorrent ignores DATA with `ack_nr > seq-1`); wall-clock timestamps; ACK every DATA; retransmit while blocked on read. Public qBittorrent HS ok; `WT_FORCE_UTP` now holds 15–16 uTP peers (was 0 dial_ok)
+- **uTP BEP 29 (ziyron-wire):** fixed swapped send/recv connection_ids; SYN-ACK `ack_nr = seq-1` (libtorrent ignores DATA with `ack_nr > seq-1`); wall-clock timestamps; ACK every DATA; retransmit while blocked on read. Public qBittorrent HS ok; `WT_FORCE_UTP` now holds 15–16 uTP peers (was 0 dial_ok)
 - **drop_chokers gate:** only drop when dial-pool waiting > 2× free established slots (Go WebtorDropChokers); was killing 107.175 while maxPeers still free
 - **TCP prefer:** 750ms grace when uTP wins dial race so TCP can still take the conn (uTP piece path often stays at downloaded=0)
 - **Client workers:** scale wt-client tokio workers to 8–16 from available_parallelism (fixed 4 starved dials under stream; dial_ok ~19 vs ~60 idle)
